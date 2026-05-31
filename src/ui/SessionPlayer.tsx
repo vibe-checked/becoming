@@ -24,7 +24,6 @@ export function SessionPlayer() {
   const selectedDuration = useAppStore((s) => s.selectedDuration);
   const sessionStartedAt = useAppStore((s) => s.sessionStartedAt);
   const endSession = useAppStore((s) => s.endSession);
-  const goToThemePicker = useAppStore((s) => s.goToThemePicker);
 
   const theme = THEMES[selectedTheme];
   const durationMs = selectedDuration * 60 * 1000;
@@ -127,7 +126,7 @@ export function SessionPlayer() {
     Speech.stop();
     soundRef.current?.stopAsync().then(() => soundRef.current?.unloadAsync());
     soundRef.current = null;
-    goToThemePicker();
+    endSession();
   };
 
   return (

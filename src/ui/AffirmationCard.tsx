@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     left: W * 0.075,
     right: W * 0.075,
     top: '38%',
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     borderRadius: 20,
     paddingHorizontal: 32,
     paddingVertical: 28,
