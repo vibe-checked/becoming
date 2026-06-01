@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Support · Becoming</title>
+  <meta name="description" content="Get help with Becoming. Contact the developer, report issues, request features." />
+  <meta name="theme-color" content="#0a0a12" />
+  <link rel="icon" href="assets/favicon.png" />
+  <link rel="apple-touch-icon" href="assets/icon.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="./">
+        <img src="assets/icon.png" alt="" />
+        <span class="brand-name">Becoming</span>
+      </a>
+      <div class="nav-links">
+        <a class="nav-link" href="./">Home</a>
+        <a class="nav-link" href="support.html">Support</a>
+        <a class="nav-link" href="privacy.html">Privacy</a>
+        <a class="nav-link cta" href="https://github.com/kiddkevin00/becoming" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap article">
+    <span class="eyebrow">SUPPORT</span>
+    <h1 style="margin-top:14px;">Need a hand?</h1>
+    <p class="meta">Becoming v1.0 · Last updated <span id="upd"></span></p>
+
+    <p>
+      Becoming is built and maintained by one person. Every email gets a real human reply,
+      usually within a couple of days.
+    </p>
+
+    <h2>Contact</h2>
+    <div class="card">
+      <h3>Email</h3>
+      <p>
+        Use this for bug reports, feature requests, accessibility issues, or anything else.<br/>
+        <a href="mailto:monkeytree2019@gmail.com?subject=Becoming%20support">monkeytree2019@gmail.com</a>
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>GitHub issues</h3>
+      <p>
+        Public-facing bug reports and feature ideas live at
+        <a href="https://github.com/kiddkevin00/becoming/issues" target="_blank" rel="noopener noreferrer">github.com/kiddkevin00/becoming/issues</a>.
+        Issues are public — please use email for anything sensitive.
+      </p>
+    </div>
+
+    <h2>Common questions</h2>
+
+    <h3>How does a session work?</h3>
+    <p>
+      Choose one of 8 themes and a duration (3, 5, 10, or 15 minutes). The app fills your screen with
+      slowly shifting gradient visuals while affirmations appear as floating text cards every 15 seconds.
+      Each affirmation is also read aloud by your device's text-to-speech engine over ambient music.
+      When the timer ends, you're asked to log how you feel.
+    </p>
+
+    <h3>Can I skip an affirmation?</h3>
+    <p>
+      In the current version, affirmations cycle automatically every 15 seconds. You can stop the
+      session at any time using the ✕ button in the top-right corner. Controls for skipping, muting,
+      and favoriting are coming in a future update.
+    </p>
+
+    <h3>Where is my data stored?</h3>
+    <p>
+      All data — your theme preference, session duration, and reflection journal — is stored locally
+      on your device using standard app storage. Nothing is sent to any server. If you delete the app,
+      your data is removed. If you have iCloud Backup enabled, your device may include the app's
+      storage in its system backup.
+    </p>
+
+    <h3>Can I add my own affirmations?</h3>
+    <p>
+      Not yet — custom affirmations are planned for a future update. For now, each theme includes
+      30 handcrafted affirmations that are shuffled each session so the order stays fresh.
+    </p>
+
+    <h3>The voice sounds robotic — can I change it?</h3>
+    <p>
+      Becoming uses your device's built-in text-to-speech engine. The voice quality depends on your
+      iOS version and which voices you have downloaded. For the best experience, go to
+      <b>Settings → Accessibility → Spoken Content → Voices → English</b> and download an
+      "Enhanced" or "Premium" voice.
+    </p>
+
+    <h3>Can I use it offline?</h3>
+    <p>
+      Yes — Becoming works entirely offline. No internet connection is required at any point.
+      All affirmations, visuals, and audio are bundled with the app.
+    </p>
+
+    <h3>Will it come to Android?</h3>
+    <p>
+      Becoming is built on Expo and runs from a single codebase on iOS, Android, and web. The first
+      public release focuses on iOS via the App Store. Android will follow once iOS is stable.
+    </p>
+
+    <h3>Reporting accessibility issues</h3>
+    <p>
+      Accessibility feedback is taken seriously. If something is hard to read, tap, or hear, please
+      email with details — device, OS version, and an example — and I'll work with you on a fix.
+    </p>
+
+    <h2>Response time</h2>
+    <p>
+      I aim to reply to every email within <b>three business days</b>. If you haven't heard back in a week,
+      please send a follow-up — it almost always means the original got buried.
+    </p>
+
+    <div class="card">
+      <p style="color: var(--text);">
+        <strong>Becoming</strong> is a one-developer indie project. Your feedback genuinely shapes
+        what gets built next. Thank you for using it.
+      </p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap foot-inner">
+      <div>© <span id="yr"></span> Marcus Hsu · Made with care.</div>
+      <div class="foot-links">
+        <a href="./">Home</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="https://github.com/kiddkevin00/becoming" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('yr').textContent = new Date().getFullYear();
+    document.getElementById('upd').textContent = new Date(document.lastModified).toISOString().slice(0,10);
+  </script>
+</body>
+</html>
