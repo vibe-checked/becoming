@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View, Pressable, Text } from 'react-native';
 import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
 import * as Speech from 'expo-speech';
@@ -11,12 +11,12 @@ import {
   computeAffirmationState,
   isSessionComplete,
   AFFIRMATION_INTERVAL_MS,
-  AFFIRMATION_TOTAL_MS,
 } from '../core/session';
-import { CrossFadeView } from './CrossFadeView';
+import { CrossFadeView, VisualSource } from './CrossFadeView';
 import { SessionCountdown } from './SessionCountdown';
 import { AffirmationCard } from './AffirmationCard';
 import { SessionControls } from './SessionControls';
+import { fetchThemeImages } from '../core/unsplash';
 
 const TICK_MS = 50;
 const MUSIC_VOLUME = 0.5;
@@ -34,9 +34,39 @@ export function SessionPlayer() {
   const removeFavorite = useAppStore((s) => s.removeFavorite);
   const favorites = useAppStore((s) => s.favorites);
   const customAffirmations = useAppStore((s) => s.customAffirmations);
+  const hiddenLibraryAffirmations = useAppStore((s) => s.hiddenLibraryAffirmations);
+  const userPhotos = useAppStore((s) => s.userPhotos);
 
   const theme = THEMES[selectedTheme];
   const durationMs = selectedDuration * 60 * 1000;
+
+  const [unsplashUris, setUnsplashUris] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchThemeImages(selectedTheme, 5).then((images) => {
+      if (!cancelled && images.length > 0) {
+        setUnsplashUris(images.map((i) => i.url));
+      }
+    });
+    return () => { cancelled = true; };
+  }, [selectedTheme]);
+
+  const visualSources: VisualSource[] = useMemo(() => {
+    const gradientSources: VisualSource[] = theme.gradients.map((g) => ({
+      type: 'gradient' as const,
+      gradient: g,
+    }));
+    const photoSources: VisualSource[] = userPhotos
+      .filter((p) => p.themeId === selectedTheme)
+      .map((p) => ({ type: 'photo' as const, uri: p.uri }));
+    const unsplashSources: VisualSource[] = unsplashUris.map((uri) => ({
+      type: 'photo' as const,
+      uri,
+    }));
+    // 70/30 blend: unsplash/photos first, gradients fill the rest
+    return [...unsplashSources, ...photoSources, ...gradientSources];
+  }, [theme.gradients, userPhotos, selectedTheme, unsplashUris]);
 
   const soundRef = useRef<Audio.Sound | null>(null);
   const affirmationsRef = useRef<string[]>([]);
@@ -57,9 +87,10 @@ export function SessionPlayer() {
     const custom = customAffirmations
       .filter((a) => a.themeId === selectedTheme)
       .map((a) => a.text);
-    const library = getShuffledAffirmations(selectedTheme);
+    const library = getShuffledAffirmations(selectedTheme)
+      .filter((t) => !hiddenLibraryAffirmations.includes(t));
     affirmationsRef.current = [...custom, ...library];
-  }, [selectedTheme, customAffirmations]);
+  }, [selectedTheme, customAffirmations, hiddenLibraryAffirmations]);
 
   useEffect(() => {
     let mounted = true;
@@ -201,7 +232,7 @@ export function SessionPlayer() {
 
   return (
     <View style={styles.root}>
-      <CrossFadeView gradients={theme.gradients} running={true} />
+      <CrossFadeView sources={visualSources} running={true} />
 
       <SessionCountdown remainingMs={remainingMs} />
 

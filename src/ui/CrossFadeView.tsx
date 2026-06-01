@@ -8,26 +8,39 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { KenBurnsView } from './KenBurnsView';
+import { KenBurnsImage } from './KenBurnsImage';
 import { GradientCombo } from '../core/types';
 import { IMAGE_DURATION_MS, CROSSFADE_MS } from '../core/session';
 
+export type VisualSource =
+  | { type: 'gradient'; gradient: GradientCombo }
+  | { type: 'photo'; uri: string };
+
 type Props = {
-  gradients: readonly GradientCombo[];
+  sources: VisualSource[];
   running: boolean;
 };
 
-export function CrossFadeView({ gradients, running }: Props) {
+function VisualSlot({ source, active }: { source: VisualSource; active: boolean }) {
+  if (source.type === 'photo') {
+    return <KenBurnsImage uri={source.uri} active={active} />;
+  }
+  return <KenBurnsView gradient={source.gradient} active={active} />;
+}
+
+export function CrossFadeView({ sources, running }: Props) {
+  const safeLen = Math.max(1, sources.length);
   const [slotA, setSlotA] = useState(0);
-  const [slotB, setSlotB] = useState(1 % gradients.length);
+  const [slotB, setSlotB] = useState(1 % safeLen);
   const [activeSlot, setActiveSlot] = useState<'A' | 'B'>('A');
   const opacityB = useSharedValue(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const indexRef = useRef(0);
 
   const scheduleNext = useCallback(() => {
-    if (!running) return;
+    if (!running || sources.length <= 1) return;
     timerRef.current = setTimeout(() => {
-      const nextIdx = (indexRef.current + 1) % gradients.length;
+      const nextIdx = (indexRef.current + 1) % sources.length;
       indexRef.current = nextIdx;
 
       if (activeSlot === 'A') {
@@ -50,7 +63,7 @@ export function CrossFadeView({ gradients, running }: Props) {
         });
       }
     }, IMAGE_DURATION_MS - CROSSFADE_MS);
-  }, [running, gradients.length, activeSlot, opacityB]);
+  }, [running, sources.length, activeSlot, opacityB]);
 
   useEffect(() => {
     if (running) {
@@ -65,14 +78,16 @@ export function CrossFadeView({ gradients, running }: Props) {
     opacity: opacityB.value,
   }));
 
-  const gradA = gradients[slotA % gradients.length];
-  const gradB = gradients[slotB % gradients.length];
+  if (sources.length === 0) return <View style={styles.container} />;
+
+  const srcA = sources[slotA % sources.length];
+  const srcB = sources[slotB % sources.length];
 
   return (
     <View style={styles.container}>
-      <KenBurnsView gradient={gradA} active={running && activeSlot === 'A'} />
+      <VisualSlot source={srcA} active={running && activeSlot === 'A'} />
       <Animated.View style={[styles.overlay, animStyleB]}>
-        <KenBurnsView gradient={gradB} active={running && activeSlot === 'B'} />
+        <VisualSlot source={srcB} active={running && activeSlot === 'B'} />
       </Animated.View>
     </View>
   );

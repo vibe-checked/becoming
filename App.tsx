@@ -8,10 +8,12 @@ import { SessionPlayer } from './src/ui/SessionPlayer';
 import { ReflectionModal } from './src/ui/ReflectionModal';
 import { HighlightReel } from './src/ui/HighlightReel';
 import { StagedPrompt, getNextPrompt } from './src/ui/StagedPrompt';
+import { ReminderPicker } from './src/ui/ReminderPicker';
 
 export default function App() {
   const [ready, setReady] = useState(false);
   const [showReel, setShowReel] = useState(false);
+  const [showReminder, setShowReminder] = useState(false);
   const [activePrompt, setActivePrompt] = useState<string | null>(null);
   const screen = useAppStore((s) => s.screen);
   const sessionPhase = useAppStore((s) => s.sessionPhase);
@@ -53,6 +55,9 @@ export default function App() {
   const handlePromptAction = (key: string) => {
     dismissPrompt(key);
     setActivePrompt(null);
+    if (key === 'set_reminder') {
+      setShowReminder(true);
+    }
   };
 
   if (!ready) {
@@ -75,6 +80,10 @@ export default function App() {
           promptKey={activePrompt}
           onDismiss={handleDismissPrompt}
           onAction={handlePromptAction}
+        />
+        <ReminderPicker
+          visible={showReminder}
+          onClose={() => setShowReminder(false)}
         />
       </View>
     </SafeAreaProvider>

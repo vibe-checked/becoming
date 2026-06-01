@@ -22,6 +22,7 @@ type Store = {
   sessionCount: number;
   currentStreak: number;
   lastSessionDate: string | null;
+  hiddenLibraryAffirmations: string[];
   dismissedPrompts: string[];
   dailyReminderHour: number | null;
 
@@ -40,6 +41,8 @@ type Store = {
   addCustomAffirmation: (themeId: ThemeId, text: string) => void;
   removeCustomAffirmation: (id: string) => void;
   editCustomAffirmation: (id: string, text: string) => void;
+
+  toggleLibraryAffirmation: (text: string) => void;
 
   addUserPhoto: (themeId: ThemeId, uri: string) => void;
   removeUserPhoto: (id: string) => void;
@@ -68,6 +71,7 @@ export const useAppStore = create<Store>((set, get) => ({
   sessionCount: 0,
   currentStreak: 0,
   lastSessionDate: null,
+  hiddenLibraryAffirmations: [],
   dismissedPrompts: [],
   dailyReminderHour: null,
 
@@ -177,6 +181,15 @@ export const useAppStore = create<Store>((set, get) => ({
     get().persist();
   },
 
+  toggleLibraryAffirmation: (text) => {
+    const s = get();
+    const hidden = s.hiddenLibraryAffirmations.includes(text)
+      ? s.hiddenLibraryAffirmations.filter((t) => t !== text)
+      : [...s.hiddenLibraryAffirmations, text];
+    set({ hiddenLibraryAffirmations: hidden });
+    get().persist();
+  },
+
   dismissPrompt: (key) => {
     const s = get();
     if (!s.dismissedPrompts.includes(key)) {
@@ -220,6 +233,7 @@ export const useAppStore = create<Store>((set, get) => ({
         sessionCount: saved.sessionCount || 0,
         currentStreak: saved.currentStreak || 0,
         lastSessionDate: saved.lastSessionDate ?? null,
+        hiddenLibraryAffirmations: saved.hiddenLibraryAffirmations || [],
         dismissedPrompts: saved.dismissedPrompts || [],
         dailyReminderHour: saved.dailyReminderHour ?? null,
       });
@@ -239,6 +253,7 @@ export const useAppStore = create<Store>((set, get) => ({
       sessionCount: s.sessionCount,
       currentStreak: s.currentStreak,
       lastSessionDate: s.lastSessionDate,
+      hiddenLibraryAffirmations: s.hiddenLibraryAffirmations,
       dismissedPrompts: s.dismissedPrompts,
       dailyReminderHour: s.dailyReminderHour,
       version: 2,

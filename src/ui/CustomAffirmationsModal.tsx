@@ -10,10 +10,13 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/useAppStore';
 import { THEMES } from '../core/themes';
+import { getAffirmations } from '../core/affirmations';
 import { ThemeId } from '../core/types';
+import { PhotoPickerButton } from './PhotoPickerButton';
 
 type Props = {
   visible: boolean;
@@ -27,13 +30,20 @@ export function CustomAffirmationsModal({ visible, themeId, onClose }: Props) {
   const addCustomAffirmation = useAppStore((s) => s.addCustomAffirmation);
   const removeCustomAffirmation = useAppStore((s) => s.removeCustomAffirmation);
   const editCustomAffirmation = useAppStore((s) => s.editCustomAffirmation);
+  const userPhotos = useAppStore((s) => s.userPhotos);
+  const removeUserPhoto = useAppStore((s) => s.removeUserPhoto);
+  const hiddenLibraryAffirmations = useAppStore((s) => s.hiddenLibraryAffirmations);
+  const toggleLibraryAffirmation = useAppStore((s) => s.toggleLibraryAffirmation);
 
   const [newText, setNewText] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
+  const [showLibrary, setShowLibrary] = useState(false);
 
   const theme = THEMES[themeId];
   const themeAffs = customAffirmations.filter((a) => a.themeId === themeId);
+  const themePhotos = userPhotos.filter((p) => p.themeId === themeId);
+  const libraryAffs = getAffirmations(themeId);
 
   const handleAdd = () => {
     const trimmed = newText.trim();
@@ -136,6 +146,44 @@ export function CustomAffirmationsModal({ visible, themeId, onClose }: Props) {
                 </View>
               ))
             )}
+            <Pressable onPress={() => setShowLibrary(!showLibrary)} style={styles.libToggle}>
+              <Text style={styles.sectionTitle}>
+                Library ({libraryAffs.length - hiddenLibraryAffirmations.filter((t) => libraryAffs.includes(t)).length}/{libraryAffs.length})
+              </Text>
+              <Text style={styles.libToggleArrow}>{showLibrary ? '▼' : '▶'}</Text>
+            </Pressable>
+            {showLibrary && libraryAffs.map((text) => {
+              const hidden = hiddenLibraryAffirmations.includes(text);
+              return (
+                <Pressable
+                  key={text}
+                  onPress={() => toggleLibraryAffirmation(text)}
+                  style={styles.libRow}
+                >
+                  <Text style={[styles.libCheck, hidden && styles.libCheckHidden]}>
+                    {hidden ? '○' : '●'}
+                  </Text>
+                  <Text style={[styles.libText, hidden && styles.libTextHidden]}>{text}</Text>
+                </Pressable>
+              );
+            })}
+
+            <Text style={styles.sectionTitle}>Photos</Text>
+            <View style={styles.photoGrid}>
+              {themePhotos.map((photo) => (
+                <View key={photo.id} style={styles.photoItem}>
+                  <Image source={{ uri: photo.uri }} style={styles.photoThumb} />
+                  <Pressable
+                    onPress={() => removeUserPhoto(photo.id)}
+                    style={styles.photoRemove}
+                    hitSlop={8}
+                  >
+                    <Text style={styles.photoRemoveText}>✕</Text>
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+            <PhotoPickerButton themeId={themeId} />
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
@@ -257,5 +305,79 @@ const styles = StyleSheet.create({
     color: '#0a0a12',
     fontWeight: '700',
     fontSize: 13,
+  },
+  libToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 24,
+    marginBottom: 8,
+  },
+  libToggleArrow: {
+    fontSize: 12,
+    color: '#666',
+  },
+  libRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    paddingVertical: 8,
+  },
+  libCheck: {
+    fontSize: 14,
+    color: '#b088e0',
+    marginTop: 2,
+  },
+  libCheckHidden: {
+    color: '#444',
+  },
+  libText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#aaa',
+    lineHeight: 20,
+  },
+  libTextHidden: {
+    color: '#555',
+    textDecorationLine: 'line-through',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#888',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  photoItem: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  photoThumb: {
+    width: 72,
+    height: 72,
+  },
+  photoRemove: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoRemoveText: {
+    fontSize: 10,
+    color: '#fff',
   },
 });
