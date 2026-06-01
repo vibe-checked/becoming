@@ -16,6 +16,10 @@ export function computeImageState(
   crossfadeProgress: number;
   kenBurnsProgress: number;
 } {
+  if (imageCount <= 0) {
+    return { frontIndex: 0, backIndex: 0, crossfadeProgress: 0, kenBurnsProgress: 0 };
+  }
+
   const cycle = elapsedMs % (IMAGE_DURATION_MS * imageCount);
   const currentImageTime = cycle % IMAGE_DURATION_MS;
   const frontIndex = Math.floor(cycle / IMAGE_DURATION_MS) % imageCount;
@@ -39,7 +43,7 @@ export function computeAffirmationState(
   index: number;
   opacity: number;
 } {
-  if (elapsedMs < AFFIRMATION_INTERVAL_MS) {
+  if (affirmationCount <= 0 || elapsedMs < AFFIRMATION_INTERVAL_MS) {
     return { visible: false, index: 0, opacity: 0 };
   }
 

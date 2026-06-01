@@ -37,8 +37,6 @@ type Store = {
 
   addFavorite: (fav: Omit<Favorite, 'id' | 'savedAt'>) => void;
   removeFavorite: (id: string) => void;
-  isFavorited: (themeId: ThemeId, affirmation: string) => boolean;
-
   addCustomAffirmation: (themeId: ThemeId, text: string) => void;
   removeCustomAffirmation: (id: string) => void;
   editCustomAffirmation: (id: string, text: string) => void;
@@ -154,12 +152,6 @@ export const useAppStore = create<Store>((set, get) => ({
     get().persist();
   },
 
-  isFavorited: (themeId, affirmation) => {
-    return get().favorites.some(
-      (f) => f.themeId === themeId && f.affirmation === affirmation,
-    );
-  },
-
   addCustomAffirmation: (themeId, text) => {
     const newAff: CustomAffirmation = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -220,14 +212,14 @@ export const useAppStore = create<Store>((set, get) => ({
       set({
         selectedTheme: saved.selectedTheme,
         selectedDuration: saved.selectedDuration,
-        sessionHistory: saved.sessionHistory,
-        favorites: saved.favorites,
-        customAffirmations: saved.customAffirmations,
-        userPhotos: saved.userPhotos,
+        sessionHistory: saved.sessionHistory || [],
+        favorites: saved.favorites || [],
+        customAffirmations: saved.customAffirmations || [],
+        userPhotos: saved.userPhotos || [],
         hasLaunched: saved.hasLaunched,
-        sessionCount: saved.sessionCount,
-        currentStreak: saved.currentStreak,
-        lastSessionDate: saved.lastSessionDate,
+        sessionCount: saved.sessionCount || 0,
+        currentStreak: saved.currentStreak || 0,
+        lastSessionDate: saved.lastSessionDate ?? null,
         dismissedPrompts: saved.dismissedPrompts || [],
         dailyReminderHour: saved.dailyReminderHour ?? null,
       });
@@ -251,6 +243,6 @@ export const useAppStore = create<Store>((set, get) => ({
       dailyReminderHour: s.dailyReminderHour,
       version: 2,
     };
-    saveState(data);
+    saveState(data).catch(() => {});
   },
 }));

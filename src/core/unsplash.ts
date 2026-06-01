@@ -42,12 +42,21 @@ export async function fetchThemeImages(
     if (!res.ok) return [];
 
     const data = await res.json();
-    return (data.results || []).map((r: Record<string, unknown>) => ({
-      id: r.id as string,
-      url: (r.urls as Record<string, string>).regular,
-      photographer: (r.user as Record<string, string>).name,
-      photographerUrl: (r.user as Record<string, Record<string, string>>).links.html,
-    }));
+    const results: UnsplashImage[] = [];
+    for (const r of data.results || []) {
+      const url = r?.urls?.regular;
+      const photographer = r?.user?.name;
+      const photographerUrl = r?.user?.links?.html;
+      if (r?.id && url) {
+        results.push({
+          id: String(r.id),
+          url: String(url),
+          photographer: String(photographer || 'Unknown'),
+          photographerUrl: String(photographerUrl || ''),
+        });
+      }
+    }
+    return results;
   } catch {
     return [];
   }

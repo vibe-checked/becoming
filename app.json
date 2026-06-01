@@ -6,16 +6,24 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a12"
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.markutilitylabs.becoming"
+      "bundleIdentifier": "com.markutilitylabs.becoming",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Becoming uses the microphone to record your own affirmations.",
+        "NSPhotoLibraryUsageDescription": "Becoming lets you add personal photos to play during sessions.",
+        "NSSpeechRecognitionUsageDescription": "Becoming uses speech recognition for voice recording."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0a0a12",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/icon.png"
       },
       "package": "com.markutilitylabs.becoming"
     },
@@ -23,7 +31,19 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-av"
+      "expo-av",
+      [
+        "expo-notifications",
+        {
+          "sounds": []
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Becoming lets you add personal photos to play during sessions."
+        }
+      ]
     ]
   }
 }

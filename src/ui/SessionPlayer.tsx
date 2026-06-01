@@ -50,6 +50,8 @@ export function SessionPlayer() {
   const lastAffIndexRef = useRef(-1);
   const affIndexRef = useRef(0);
   const skipOffsetRef = useRef(0);
+  const lastDisplayedSecRef = useRef(-1);
+  const mutedRef = useRef(false);
 
   useEffect(() => {
     const custom = customAffirmations
@@ -94,11 +96,11 @@ export function SessionPlayer() {
   }, []);
 
   const handleDuck = useCallback(() => {
-    soundRef.current?.setVolumeAsync(MUSIC_DUCK_VOLUME);
+    if (!mutedRef.current) soundRef.current?.setVolumeAsync(MUSIC_DUCK_VOLUME);
   }, []);
 
   const handleRestore = useCallback(() => {
-    soundRef.current?.setVolumeAsync(MUSIC_VOLUME);
+    if (!mutedRef.current) soundRef.current?.setVolumeAsync(MUSIC_VOLUME);
   }, []);
 
   useEffect(() => {
@@ -107,7 +109,11 @@ export function SessionPlayer() {
     intervalRef.current = setInterval(() => {
       const elapsed = Date.now() - sessionStartedAt;
       const remaining = Math.max(0, durationMs - elapsed);
-      setRemainingMs(remaining);
+      const displaySec = Math.ceil(remaining / 1000);
+      if (displaySec !== lastDisplayedSecRef.current) {
+        lastDisplayedSecRef.current = displaySec;
+        setRemainingMs(remaining);
+      }
 
       if (isSessionComplete(elapsed, durationMs)) {
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -155,6 +161,7 @@ export function SessionPlayer() {
   const handleMuteToggle = useCallback(() => {
     setMuted((prev) => {
       const next = !prev;
+      mutedRef.current = next;
       if (next) {
         Speech.stop();
         soundRef.current?.setVolumeAsync(0);
