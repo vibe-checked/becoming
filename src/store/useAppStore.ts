@@ -22,6 +22,8 @@ type Store = {
   sessionCount: number;
   currentStreak: number;
   lastSessionDate: string | null;
+  dismissedPrompts: string[];
+  dailyReminderHour: number | null;
 
   screen: 'theme_picker' | 'session';
   sessionPhase: 'idle' | 'playing' | 'reflection';
@@ -44,6 +46,9 @@ type Store = {
   addUserPhoto: (themeId: ThemeId, uri: string) => void;
   removeUserPhoto: (id: string) => void;
 
+  dismissPrompt: (key: string) => void;
+  setDailyReminder: (hour: number | null) => void;
+
   hydrate: () => Promise<void>;
   persist: () => void;
 };
@@ -65,6 +70,8 @@ export const useAppStore = create<Store>((set, get) => ({
   sessionCount: 0,
   currentStreak: 0,
   lastSessionDate: null,
+  dismissedPrompts: [],
+  dailyReminderHour: null,
 
   screen: 'theme_picker',
   sessionPhase: 'idle',
@@ -178,6 +185,19 @@ export const useAppStore = create<Store>((set, get) => ({
     get().persist();
   },
 
+  dismissPrompt: (key) => {
+    const s = get();
+    if (!s.dismissedPrompts.includes(key)) {
+      set({ dismissedPrompts: [...s.dismissedPrompts, key] });
+      get().persist();
+    }
+  },
+
+  setDailyReminder: (hour) => {
+    set({ dailyReminderHour: hour });
+    get().persist();
+  },
+
   addUserPhoto: (themeId, uri) => {
     const photo: UserPhoto = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -208,6 +228,8 @@ export const useAppStore = create<Store>((set, get) => ({
         sessionCount: saved.sessionCount,
         currentStreak: saved.currentStreak,
         lastSessionDate: saved.lastSessionDate,
+        dismissedPrompts: saved.dismissedPrompts || [],
+        dailyReminderHour: saved.dailyReminderHour ?? null,
       });
     }
   },
@@ -225,6 +247,8 @@ export const useAppStore = create<Store>((set, get) => ({
       sessionCount: s.sessionCount,
       currentStreak: s.currentStreak,
       lastSessionDate: s.lastSessionDate,
+      dismissedPrompts: s.dismissedPrompts,
+      dailyReminderHour: s.dailyReminderHour,
       version: 2,
     };
     saveState(data);

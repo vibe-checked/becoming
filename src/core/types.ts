@@ -74,5 +74,7 @@ export type PersistedState = {
   sessionCount: number;
   currentStreak: number;
   lastSessionDate: string | null;
+  dismissedPrompts: string[];
+  dailyReminderHour: number | null;
   version: 2;
 };

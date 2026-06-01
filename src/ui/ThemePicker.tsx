@@ -30,6 +30,8 @@ export function ThemePicker({ onOpenHighlightReel }: Props) {
   const selectDuration = useAppStore((s) => s.selectDuration);
   const startSession = useAppStore((s) => s.startSession);
   const customAffirmations = useAppStore((s) => s.customAffirmations);
+  const currentStreak = useAppStore((s) => s.currentStreak);
+  const sessionCount = useAppStore((s) => s.sessionCount);
 
   const [editTheme, setEditTheme] = useState<ThemeId | null>(null);
 
@@ -55,7 +57,13 @@ export function ThemePicker({ onOpenHighlightReel }: Props) {
           <Text style={styles.reelBtn}>💫</Text>
         </Pressable>
       </View>
-      <Text style={styles.subtitle}>Choose your focus · long press to customize</Text>
+      <Text style={styles.subtitle}>
+        {currentStreak > 1
+          ? `🔥 ${currentStreak} day streak · ${sessionCount} sessions`
+          : sessionCount > 0
+            ? `${sessionCount} session${sessionCount === 1 ? '' : 's'} completed`
+            : 'Choose your focus · long press to customize'}
+      </Text>
 
       <View style={styles.durationRow}>
         {DURATIONS.map((d) => (
