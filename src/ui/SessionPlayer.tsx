@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View, Pressable, Text } from 'react-native';
-import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av';
+import { useAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import * as Speech from 'expo-speech';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +21,8 @@ import { fetchThemeImages } from '../core/unsplash';
 const TICK_MS = 50;
 const MUSIC_VOLUME = 0.5;
 const MUSIC_DUCK_VOLUME = 0.2;
+
+const ambientSource = require('../../assets/music/ambient.mp3');
 
 export function SessionPlayer() {
   useKeepAwake();
@@ -64,11 +66,10 @@ export function SessionPlayer() {
       type: 'photo' as const,
       uri,
     }));
-    // 70/30 blend: unsplash/photos first, gradients fill the rest
     return [...unsplashSources, ...photoSources, ...gradientSources];
   }, [theme.gradients, userPhotos, selectedTheme, unsplashUris]);
 
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const player = useAudioPlayer(ambientSource);
   const affirmationsRef = useRef<string[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -78,7 +79,6 @@ export function SessionPlayer() {
   const [muted, setMuted] = useState(false);
   const [currentGradientIndex, setCurrentGradientIndex] = useState(0);
   const lastAffIndexRef = useRef(-1);
-  const affIndexRef = useRef(0);
   const skipOffsetRef = useRef(0);
   const lastDisplayedSecRef = useRef(-1);
   const mutedRef = useRef(false);
@@ -93,46 +93,24 @@ export function SessionPlayer() {
   }, [selectedTheme, customAffirmations, hiddenLibraryAffirmations]);
 
   useEffect(() => {
-    let mounted = true;
-
-    (async () => {
-      try {
-        await Audio.setAudioModeAsync({
-          playsInSilentModeIOS: true,
-          staysActiveInBackground: false,
-          shouldDuckAndroid: true,
-          interruptionModeIOS: InterruptionModeIOS.DuckOthers,
-          interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-        });
-
-        const { sound } = await Audio.Sound.createAsync(
-          require('../../assets/music/ambient.mp3'),
-          { shouldPlay: true, isLooping: true, volume: MUSIC_VOLUME },
-        );
-        if (mounted) {
-          soundRef.current = sound;
-        } else {
-          await sound.unloadAsync();
-        }
-      } catch {}
-    })();
+    setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
+    player.loop = true;
+    player.volume = MUSIC_VOLUME;
+    player.play();
 
     return () => {
-      mounted = false;
       Speech.stop();
-      const s = soundRef.current;
-      soundRef.current = null;
-      s?.stopAsync().then(() => s.unloadAsync());
+      player.pause();
     };
-  }, []);
+  }, [player]);
 
   const handleDuck = useCallback(() => {
-    if (!mutedRef.current) soundRef.current?.setVolumeAsync(MUSIC_DUCK_VOLUME);
-  }, []);
+    if (!mutedRef.current) player.volume = MUSIC_DUCK_VOLUME;
+  }, [player]);
 
   const handleRestore = useCallback(() => {
-    if (!mutedRef.current) soundRef.current?.setVolumeAsync(MUSIC_VOLUME);
-  }, []);
+    if (!mutedRef.current) player.volume = MUSIC_VOLUME;
+  }, [player]);
 
   useEffect(() => {
     if (!sessionStartedAt) return;
@@ -149,27 +127,27 @@ export function SessionPlayer() {
       if (isSessionComplete(elapsed, durationMs)) {
         if (intervalRef.current) clearInterval(intervalRef.current);
         Speech.stop();
-        const s = soundRef.current;
-        soundRef.current = null;
-        s?.setVolumeAsync(0).then(() => s?.stopAsync());
+        player.pause();
         endSession();
         return;
       }
 
       const adjustedElapsed = elapsed + skipOffsetRef.current;
-      const affState = computeAffirmationState(
-        adjustedElapsed,
-        affirmationsRef.current.length,
-      );
+      const affCount = affirmationsRef.current.length;
+      if (affCount === 0) return;
+
+      const affState = computeAffirmationState(adjustedElapsed, affCount);
 
       if (affState.visible && affState.index !== lastAffIndexRef.current) {
         lastAffIndexRef.current = affState.index;
-        affIndexRef.current = affState.index;
-        setAffirmationText(affirmationsRef.current[affState.index]);
-        setAffirmationVisible(true);
-        setCurrentGradientIndex(
-          Math.floor(adjustedElapsed / 4000) % theme.gradients.length,
-        );
+        const text = affirmationsRef.current[affState.index];
+        if (text) {
+          setAffirmationText(text);
+          setAffirmationVisible(true);
+          setCurrentGradientIndex(
+            Math.floor(adjustedElapsed / 4000) % theme.gradients.length,
+          );
+        }
       } else if (!affState.visible && lastAffIndexRef.current >= 0) {
         setAffirmationVisible(false);
       }
@@ -178,14 +156,12 @@ export function SessionPlayer() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [sessionStartedAt, durationMs, endSession, theme.gradients.length]);
+  }, [sessionStartedAt, durationMs, endSession, theme.gradients.length, player]);
 
   const handleStop = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     Speech.stop();
-    const s = soundRef.current;
-    soundRef.current = null;
-    s?.stopAsync().then(() => s.unloadAsync());
+    player.pause();
     endSession();
   };
 
@@ -195,13 +171,13 @@ export function SessionPlayer() {
       mutedRef.current = next;
       if (next) {
         Speech.stop();
-        soundRef.current?.setVolumeAsync(0);
+        player.volume = 0;
       } else {
-        soundRef.current?.setVolumeAsync(MUSIC_VOLUME);
+        player.volume = MUSIC_VOLUME;
       }
       return next;
     });
-  }, []);
+  }, [player]);
 
   const handleSkip = useCallback(() => {
     Speech.stop();
@@ -226,12 +202,16 @@ export function SessionPlayer() {
     }
   }, [affirmationText, selectedTheme, currentGradientIndex, favorites, addFavorite, removeFavorite]);
 
-  const isFav = favorites.some(
-    (f) => f.themeId === selectedTheme && f.affirmation === affirmationText,
+  const isFav = useMemo(
+    () => favorites.some((f) => f.themeId === selectedTheme && f.affirmation === affirmationText),
+    [favorites, selectedTheme, affirmationText],
   );
 
+  const [tapKey, setTapKey] = useState(0);
+  const handleTapAnywhere = useCallback(() => setTapKey((k) => k + 1), []);
+
   return (
-    <View style={styles.root}>
+    <Pressable style={styles.root} onPress={handleTapAnywhere}>
       <CrossFadeView sources={visualSources} running={true} />
 
       <SessionCountdown remainingMs={remainingMs} />
@@ -250,6 +230,7 @@ export function SessionPlayer() {
         onMuteToggle={handleMuteToggle}
         onSkip={handleSkip}
         onResonance={handleResonance}
+        onTapAnywhere={handleTapAnywhere}
       />
 
       <Pressable
@@ -259,7 +240,7 @@ export function SessionPlayer() {
       >
         <Text style={styles.stopText}>✕</Text>
       </Pressable>
-    </View>
+    </Pressable>
   );
 }
 

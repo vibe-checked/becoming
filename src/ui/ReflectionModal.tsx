@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   StyleSheet,
@@ -23,6 +23,11 @@ export function ReflectionModal() {
   const submitReflection = useAppStore((s) => s.submitReflection);
 
   const [note, setNote] = useState('');
+  const isVisible = sessionPhase === 'reflection';
+
+  useEffect(() => {
+    if (isVisible) setNote('');
+  }, [isVisible]);
 
   const handleSelect = (emoji: ReflectionEmoji) => {
     submitReflection(emoji, note.trim());
