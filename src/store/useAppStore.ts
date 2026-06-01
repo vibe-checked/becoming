@@ -1,10 +1,8 @@
 import { create } from 'zustand';
 import {
-  AppScreen,
   DurationMin,
   PersistedState,
   ReflectionEmoji,
-  SessionPhase,
   SessionRecord,
   ThemeId,
 } from '../core/types';
@@ -16,8 +14,8 @@ type Store = {
   sessionHistory: SessionRecord[];
   hasLaunched: boolean;
 
-  screen: AppScreen;
-  sessionPhase: SessionPhase;
+  screen: 'theme_picker' | 'session';
+  sessionPhase: 'idle' | 'playing' | 'reflection';
   sessionStartedAt: number | null;
 
   selectTheme: (id: ThemeId) => void;
@@ -25,7 +23,6 @@ type Store = {
   startSession: () => void;
   endSession: () => void;
   submitReflection: (emoji: ReflectionEmoji, note: string) => void;
-  goToThemePicker: () => void;
   hydrate: () => Promise<void>;
   persist: () => void;
 };
@@ -84,14 +81,6 @@ export const useAppStore = create<Store>((set, get) => ({
       sessionStartedAt: null,
     });
     get().persist();
-  },
-
-  goToThemePicker: () => {
-    set({
-      screen: 'theme_picker',
-      sessionPhase: 'idle',
-      sessionStartedAt: null,
-    });
   },
 
   hydrate: async () => {

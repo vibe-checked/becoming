@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Dimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,7 +11,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { GradientCombo } from '../core/types';
 import { IMAGE_DURATION_MS } from '../core/session';
 
-const { width: W, height: H } = Dimensions.get('window');
 const SCALE_FROM = 1.0;
 const SCALE_TO = 1.18;
 const PAN_RANGE = 25;
@@ -28,6 +27,7 @@ type Props = {
 };
 
 export function KenBurnsView({ gradient, active }: Props) {
+  const { width: W, height: H } = useWindowDimensions();
   const scale = useSharedValue(SCALE_FROM);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -74,17 +74,16 @@ export function KenBurnsView({ gradient, active }: Props) {
       colors={[...gradient.colors]}
       start={gradient.start}
       end={gradient.end}
-      style={[styles.gradient, animStyle]}
+      style={[
+        {
+          position: 'absolute' as const,
+          width: W * 1.15,
+          height: H * 1.15,
+          left: -(W * 0.075),
+          top: -(H * 0.075),
+        },
+        animStyle,
+      ]}
     />
   );
 }
-
-const styles = StyleSheet.create({
-  gradient: {
-    position: 'absolute',
-    width: W * 1.15,
-    height: H * 1.15,
-    left: -(W * 0.075),
-    top: -(H * 0.075),
-  },
-});

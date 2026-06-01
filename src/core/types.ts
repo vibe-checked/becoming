@@ -21,10 +21,6 @@ export type SessionRecord = {
   completedAt: number;
 };
 
-export type AppScreen = 'theme_picker' | 'session';
-
-export type SessionPhase = 'idle' | 'playing' | 'reflection';
-
 export type GradientCombo = {
   colors: readonly [string, string, string];
   start: { x: number; y: number };

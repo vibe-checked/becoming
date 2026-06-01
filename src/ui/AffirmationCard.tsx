@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Text, Dimensions } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  withSequence,
   withDelay,
   Easing,
   cancelAnimation,
@@ -14,8 +15,6 @@ import {
   AFFIRMATION_HOLD_MS,
   AFFIRMATION_FADE_OUT_MS,
 } from '../core/session';
-
-const { width: W } = Dimensions.get('window');
 
 type Props = {
   text: string;
@@ -32,63 +31,62 @@ export function AffirmationCard({
   onDuckAudio,
   onRestoreAudio,
 }: Props) {
+  const { width: screenW } = useWindowDimensions();
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.95);
   const translateY = useSharedValue(12);
   const prevTextRef = useRef('');
+  const displayTextRef = useRef('');
 
   useEffect(() => {
-    if (visible && text !== prevTextRef.current) {
-      prevTextRef.current = text;
+    if (visible && text) {
+      if (text !== prevTextRef.current) {
+        prevTextRef.current = text;
+        displayTextRef.current = text;
 
-      opacity.value = 0;
-      scale.value = 0.95;
-      translateY.value = 12;
+        cancelAnimation(opacity);
+        cancelAnimation(scale);
+        cancelAnimation(translateY);
 
-      opacity.value = withTiming(1, {
-        duration: AFFIRMATION_FADE_IN_MS,
-        easing: Easing.out(Easing.cubic),
-      });
-      scale.value = withTiming(1, {
-        duration: AFFIRMATION_FADE_IN_MS,
-        easing: Easing.out(Easing.cubic),
-      });
-      translateY.value = withTiming(0, {
-        duration: AFFIRMATION_FADE_IN_MS,
-        easing: Easing.out(Easing.cubic),
-      });
+        scale.value = 0.95;
+        translateY.value = 12;
 
-      const fadeOutDelay = AFFIRMATION_FADE_IN_MS + AFFIRMATION_HOLD_MS;
-      opacity.value = withDelay(
-        fadeOutDelay,
-        withTiming(0, {
-          duration: AFFIRMATION_FADE_OUT_MS,
-          easing: Easing.in(Easing.cubic),
-        }),
-      );
+        opacity.value = withSequence(
+          withTiming(1, {
+            duration: AFFIRMATION_FADE_IN_MS,
+            easing: Easing.out(Easing.cubic),
+          }),
+          withDelay(
+            AFFIRMATION_HOLD_MS,
+            withTiming(0, {
+              duration: AFFIRMATION_FADE_OUT_MS,
+              easing: Easing.in(Easing.cubic),
+            }),
+          ),
+        );
 
-      if (ttsEnabled) {
-        onDuckAudio?.();
-        Speech.speak(text, {
-          language: 'en-US',
-          rate: 0.85,
-          pitch: 1.0,
-          onDone: () => onRestoreAudio?.(),
-          onStopped: () => onRestoreAudio?.(),
-          onError: () => onRestoreAudio?.(),
+        scale.value = withTiming(1, {
+          duration: AFFIRMATION_FADE_IN_MS,
+          easing: Easing.out(Easing.cubic),
         });
+        translateY.value = withTiming(0, {
+          duration: AFFIRMATION_FADE_IN_MS,
+          easing: Easing.out(Easing.cubic),
+        });
+
+        if (ttsEnabled) {
+          onDuckAudio?.();
+          Speech.speak(text, {
+            language: 'en-US',
+            rate: 0.85,
+            pitch: 1.0,
+            onDone: () => onRestoreAudio?.(),
+            onStopped: () => onRestoreAudio?.(),
+            onError: () => onRestoreAudio?.(),
+          });
+        }
       }
     }
-
-    if (!visible) {
-      opacity.value = 0;
-    }
-
-    return () => {
-      cancelAnimation(opacity);
-      cancelAnimation(scale);
-      cancelAnimation(translateY);
-    };
   }, [visible, text, ttsEnabled, opacity, scale, translateY, onDuckAudio, onRestoreAudio]);
 
   const animStyle = useAnimatedStyle(() => ({
@@ -96,11 +94,15 @@ export function AffirmationCard({
     transform: [{ scale: scale.value }, { translateY: translateY.value }],
   }));
 
-  if (!visible) return null;
+  const hPad = screenW * 0.075;
+  const displayText = displayTextRef.current || text;
 
   return (
-    <Animated.View style={[styles.card, animStyle]}>
-      <Text style={styles.text}>{text}</Text>
+    <Animated.View
+      style={[styles.card, { left: hPad, right: hPad }, animStyle]}
+      pointerEvents="none"
+    >
+      <Text style={styles.text}>{displayText}</Text>
     </Animated.View>
   );
 }
@@ -108,10 +110,8 @@ export function AffirmationCard({
 const styles = StyleSheet.create({
   card: {
     position: 'absolute',
-    left: W * 0.075,
-    right: W * 0.075,
     top: '38%',
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     borderRadius: 20,
     paddingHorizontal: 32,
     paddingVertical: 28,
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 22,
     fontWeight: '300',
-    color: 'rgba(255,255,255,0.92)',
+    color: 'rgba(255,255,255,0.95)',
     textAlign: 'center',
     lineHeight: 32,
     letterSpacing: 0.3,

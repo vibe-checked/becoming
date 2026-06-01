@@ -71,8 +71,9 @@ export function SessionPlayer() {
     return () => {
       mounted = false;
       Speech.stop();
-      soundRef.current?.stopAsync().then(() => soundRef.current?.unloadAsync());
+      const s = soundRef.current;
       soundRef.current = null;
+      s?.stopAsync().then(() => s.unloadAsync());
     };
   }, []);
 
@@ -124,8 +125,9 @@ export function SessionPlayer() {
   const handleStop = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     Speech.stop();
-    soundRef.current?.stopAsync().then(() => soundRef.current?.unloadAsync());
+    const s = soundRef.current;
     soundRef.current = null;
+    s?.stopAsync().then(() => s.unloadAsync());
     endSession();
   };
 
