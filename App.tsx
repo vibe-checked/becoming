@@ -6,9 +6,11 @@ import { useAppStore } from './src/store/useAppStore';
 import { ThemePicker } from './src/ui/ThemePicker';
 import { SessionPlayer } from './src/ui/SessionPlayer';
 import { ReflectionModal } from './src/ui/ReflectionModal';
+import { HighlightReel } from './src/ui/HighlightReel';
 
 export default function App() {
   const [ready, setReady] = useState(false);
+  const [showReel, setShowReel] = useState(false);
   const screen = useAppStore((s) => s.screen);
   const sessionPhase = useAppStore((s) => s.sessionPhase);
   const hydrate = useAppStore((s) => s.hydrate);
@@ -35,7 +37,12 @@ export default function App() {
     <SafeAreaProvider>
       <View style={styles.root}>
         <StatusBar style="light" />
-        {screen === 'theme_picker' && <ThemePicker />}
+        {screen === 'theme_picker' && !showReel && (
+          <ThemePicker onOpenHighlightReel={() => setShowReel(true)} />
+        )}
+        {screen === 'theme_picker' && showReel && (
+          <HighlightReel onClose={() => setShowReel(false)} />
+        )}
         {screen === 'session' && <SessionPlayer />}
         {sessionPhase === 'reflection' && <ReflectionModal />}
       </View>

@@ -7,10 +7,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/useAppStore';
 import { THEMES } from '../core/themes';
 import { getShuffledAffirmations } from '../core/affirmations';
-import { computeAffirmationState, isSessionComplete } from '../core/session';
+import {
+  computeAffirmationState,
+  isSessionComplete,
+  AFFIRMATION_INTERVAL_MS,
+  AFFIRMATION_TOTAL_MS,
+} from '../core/session';
 import { CrossFadeView } from './CrossFadeView';
 import { SessionCountdown } from './SessionCountdown';
 import { AffirmationCard } from './AffirmationCard';
+import { SessionControls } from './SessionControls';
 
 const TICK_MS = 50;
 const MUSIC_VOLUME = 0.5;
@@ -24,6 +30,10 @@ export function SessionPlayer() {
   const selectedDuration = useAppStore((s) => s.selectedDuration);
   const sessionStartedAt = useAppStore((s) => s.sessionStartedAt);
   const endSession = useAppStore((s) => s.endSession);
+  const addFavorite = useAppStore((s) => s.addFavorite);
+  const removeFavorite = useAppStore((s) => s.removeFavorite);
+  const favorites = useAppStore((s) => s.favorites);
+  const customAffirmations = useAppStore((s) => s.customAffirmations);
 
   const theme = THEMES[selectedTheme];
   const durationMs = selectedDuration * 60 * 1000;
@@ -35,11 +45,19 @@ export function SessionPlayer() {
   const [remainingMs, setRemainingMs] = useState(durationMs);
   const [affirmationText, setAffirmationText] = useState('');
   const [affirmationVisible, setAffirmationVisible] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [currentGradientIndex, setCurrentGradientIndex] = useState(0);
   const lastAffIndexRef = useRef(-1);
+  const affIndexRef = useRef(0);
+  const skipOffsetRef = useRef(0);
 
   useEffect(() => {
-    affirmationsRef.current = getShuffledAffirmations(selectedTheme);
-  }, [selectedTheme]);
+    const custom = customAffirmations
+      .filter((a) => a.themeId === selectedTheme)
+      .map((a) => a.text);
+    const library = getShuffledAffirmations(selectedTheme);
+    affirmationsRef.current = [...custom, ...library];
+  }, [selectedTheme, customAffirmations]);
 
   useEffect(() => {
     let mounted = true;
@@ -63,9 +81,7 @@ export function SessionPlayer() {
         } else {
           await sound.unloadAsync();
         }
-      } catch {
-        // audio may not be available in simulator
-      }
+      } catch {}
     })();
 
     return () => {
@@ -96,22 +112,27 @@ export function SessionPlayer() {
       if (isSessionComplete(elapsed, durationMs)) {
         if (intervalRef.current) clearInterval(intervalRef.current);
         Speech.stop();
-        soundRef.current
-          ?.setVolumeAsync(0)
-          .then(() => soundRef.current?.stopAsync());
+        const s = soundRef.current;
+        soundRef.current = null;
+        s?.setVolumeAsync(0).then(() => s?.stopAsync());
         endSession();
         return;
       }
 
+      const adjustedElapsed = elapsed + skipOffsetRef.current;
       const affState = computeAffirmationState(
-        elapsed,
+        adjustedElapsed,
         affirmationsRef.current.length,
       );
 
       if (affState.visible && affState.index !== lastAffIndexRef.current) {
         lastAffIndexRef.current = affState.index;
+        affIndexRef.current = affState.index;
         setAffirmationText(affirmationsRef.current[affState.index]);
         setAffirmationVisible(true);
+        setCurrentGradientIndex(
+          Math.floor(adjustedElapsed / 4000) % theme.gradients.length,
+        );
       } else if (!affState.visible && lastAffIndexRef.current >= 0) {
         setAffirmationVisible(false);
       }
@@ -120,7 +141,7 @@ export function SessionPlayer() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [sessionStartedAt, durationMs, endSession]);
+  }, [sessionStartedAt, durationMs, endSession, theme.gradients.length]);
 
   const handleStop = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -131,6 +152,46 @@ export function SessionPlayer() {
     endSession();
   };
 
+  const handleMuteToggle = useCallback(() => {
+    setMuted((prev) => {
+      const next = !prev;
+      if (next) {
+        Speech.stop();
+        soundRef.current?.setVolumeAsync(0);
+      } else {
+        soundRef.current?.setVolumeAsync(MUSIC_VOLUME);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSkip = useCallback(() => {
+    Speech.stop();
+    skipOffsetRef.current += AFFIRMATION_INTERVAL_MS;
+    lastAffIndexRef.current = -1;
+    setAffirmationVisible(false);
+  }, []);
+
+  const handleResonance = useCallback(() => {
+    if (!affirmationText) return;
+    const existing = favorites.find(
+      (f) => f.themeId === selectedTheme && f.affirmation === affirmationText,
+    );
+    if (existing) {
+      removeFavorite(existing.id);
+    } else {
+      addFavorite({
+        themeId: selectedTheme,
+        affirmation: affirmationText,
+        gradientIndex: currentGradientIndex,
+      });
+    }
+  }, [affirmationText, selectedTheme, currentGradientIndex, favorites, addFavorite, removeFavorite]);
+
+  const isFav = favorites.some(
+    (f) => f.themeId === selectedTheme && f.affirmation === affirmationText,
+  );
+
   return (
     <View style={styles.root}>
       <CrossFadeView gradients={theme.gradients} running={true} />
@@ -140,9 +201,17 @@ export function SessionPlayer() {
       <AffirmationCard
         text={affirmationText}
         visible={affirmationVisible}
-        ttsEnabled={true}
-        onDuckAudio={handleDuck}
-        onRestoreAudio={handleRestore}
+        ttsEnabled={!muted}
+        onDuckAudio={muted ? undefined : handleDuck}
+        onRestoreAudio={muted ? undefined : handleRestore}
+      />
+
+      <SessionControls
+        muted={muted}
+        isFavorited={isFav}
+        onMuteToggle={handleMuteToggle}
+        onSkip={handleSkip}
+        onResonance={handleResonance}
       />
 
       <Pressable
