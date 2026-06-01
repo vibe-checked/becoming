@@ -78,6 +78,7 @@ export function SessionPlayer() {
   const [affirmationVisible, setAffirmationVisible] = useState(false);
   const [muted, setMuted] = useState(false);
   const [currentGradientIndex, setCurrentGradientIndex] = useState(0);
+  const [visualSkipSignal, setVisualSkipSignal] = useState(0);
   const lastAffIndexRef = useRef(-1);
   const skipOffsetRef = useRef(0);
   const lastDisplayedSecRef = useRef(-1);
@@ -184,6 +185,7 @@ export function SessionPlayer() {
     skipOffsetRef.current += AFFIRMATION_INTERVAL_MS;
     lastAffIndexRef.current = -1;
     setAffirmationVisible(false);
+    setVisualSkipSignal((s) => s + 1);
   }, []);
 
   const handleResonance = useCallback(() => {
@@ -212,7 +214,7 @@ export function SessionPlayer() {
 
   return (
     <Pressable style={styles.root} onPress={handleTapAnywhere}>
-      <CrossFadeView sources={visualSources} running={true} />
+      <CrossFadeView sources={visualSources} running={true} skipSignal={visualSkipSignal} />
 
       <SessionCountdown remainingMs={remainingMs} />
 

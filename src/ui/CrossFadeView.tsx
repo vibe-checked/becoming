@@ -19,6 +19,7 @@ export type VisualSource =
 type Props = {
   sources: VisualSource[];
   running: boolean;
+  skipSignal?: number;
 };
 
 function VisualSlot({ source, active }: { source: VisualSource; active: boolean }) {
@@ -28,42 +29,45 @@ function VisualSlot({ source, active }: { source: VisualSource; active: boolean 
   return <KenBurnsView gradient={source.gradient} active={active} />;
 }
 
-export function CrossFadeView({ sources, running }: Props) {
-  const safeLen = Math.max(1, sources.length);
+export function CrossFadeView({ sources, running, skipSignal }: Props) {
   const [slotA, setSlotA] = useState(0);
-  const [slotB, setSlotB] = useState(1 % safeLen);
+  const [slotB, setSlotB] = useState(Math.min(1, sources.length - 1));
   const [activeSlot, setActiveSlot] = useState<'A' | 'B'>('A');
   const opacityB = useSharedValue(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const indexRef = useRef(0);
 
+  const advanceToNext = useCallback(() => {
+    if (sources.length <= 1) return;
+    const nextIdx = (indexRef.current + 1) % sources.length;
+    indexRef.current = nextIdx;
+
+    if (activeSlot === 'A') {
+      setSlotB(nextIdx);
+      opacityB.value = 0;
+      opacityB.value = withTiming(1, {
+        duration: CROSSFADE_MS,
+        easing: Easing.inOut(Easing.ease),
+      }, (finished) => {
+        if (finished) runOnJS(setActiveSlot)('B');
+      });
+    } else {
+      setSlotA(nextIdx);
+      opacityB.value = 1;
+      opacityB.value = withTiming(0, {
+        duration: CROSSFADE_MS,
+        easing: Easing.inOut(Easing.ease),
+      }, (finished) => {
+        if (finished) runOnJS(setActiveSlot)('A');
+      });
+    }
+  }, [sources.length, activeSlot, opacityB]);
+
   const scheduleNext = useCallback(() => {
     if (!running || sources.length <= 1) return;
-    timerRef.current = setTimeout(() => {
-      const nextIdx = (indexRef.current + 1) % sources.length;
-      indexRef.current = nextIdx;
-
-      if (activeSlot === 'A') {
-        setSlotB(nextIdx);
-        opacityB.value = 0;
-        opacityB.value = withTiming(1, {
-          duration: CROSSFADE_MS,
-          easing: Easing.inOut(Easing.ease),
-        }, (finished) => {
-          if (finished) runOnJS(setActiveSlot)('B');
-        });
-      } else {
-        setSlotA(nextIdx);
-        opacityB.value = 1;
-        opacityB.value = withTiming(0, {
-          duration: CROSSFADE_MS,
-          easing: Easing.inOut(Easing.ease),
-        }, (finished) => {
-          if (finished) runOnJS(setActiveSlot)('A');
-        });
-      }
-    }, IMAGE_DURATION_MS - CROSSFADE_MS);
-  }, [running, sources.length, activeSlot, opacityB]);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(advanceToNext, IMAGE_DURATION_MS - CROSSFADE_MS);
+  }, [running, sources.length, advanceToNext]);
 
   useEffect(() => {
     if (running) {
@@ -73,6 +77,13 @@ export function CrossFadeView({ sources, running }: Props) {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [running, activeSlot, scheduleNext]);
+
+  useEffect(() => {
+    if (skipSignal && skipSignal > 0) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      advanceToNext();
+    }
+  }, [skipSignal, advanceToNext]);
 
   const animStyleB = useAnimatedStyle(() => ({
     opacity: opacityB.value,
