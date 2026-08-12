@@ -8,7 +8,7 @@ export type UnsplashImage = {
 };
 
 const SEARCH_TERMS: Record<ThemeId, string> = {
-  rich: 'luxury gold wealth',
+  rich: 'luxury lifestyle mansion yacht',
   love: 'romance sunset couple',
   health: 'nature wellness green',
   confidence: 'mountain peak power',
@@ -20,14 +20,14 @@ const SEARCH_TERMS: Record<ThemeId, string> = {
 
 const CURATED_IMAGES: Record<ThemeId, UnsplashImage[]> = {
   rich: [
-    { id: 'r1', url: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=800&h=1200&fit=crop&q=80', photographer: 'Jingming Pan', photographerUrl: 'https://unsplash.com/@pokmer' },
-    { id: 'r2', url: 'https://images.unsplash.com/photo-1718752773178-a02768f6355d?w=800&h=1200&fit=crop&q=80', photographer: 'Scottsdale Mint', photographerUrl: 'https://unsplash.com/@scottsdalemint' },
-    { id: 'r3', url: 'https://images.unsplash.com/photo-1587925358603-c2eea5305bbc?w=800&h=1200&fit=crop&q=80', photographer: 'Logan Weaver', photographerUrl: 'https://unsplash.com/@lgnwvr' },
-    { id: 'r4', url: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&h=1200&fit=crop&q=80', photographer: 'Alexander Grey', photographerUrl: 'https://unsplash.com/@sharonmccutcheon' },
+    { id: 'r1', url: 'https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=800&h=1200&fit=crop&q=80', photographer: 'Daniel Barnes', photographerUrl: 'https://unsplash.com/@dannybarness' },
+    { id: 'r2', url: 'https://images.unsplash.com/photo-1528154291023-a6525fabe5b4?w=800&h=1200&fit=crop&q=80', photographer: 'nikldn', photographerUrl: 'https://unsplash.com/@nikldn' },
+    { id: 'r3', url: 'https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=800&h=1200&fit=crop&q=80', photographer: 'Chris Leipelt', photographerUrl: 'https://unsplash.com/@cleipelt' },
+    { id: 'r4', url: 'https://images.unsplash.com/photo-1769149255670-aa0ad6428dd6?w=800&h=1200&fit=crop&q=80', photographer: 'Long Chung', photographerUrl: 'https://unsplash.com/@chungj07' },
   ],
   love: [
     { id: 'l1', url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
-    { id: 'l2', url: 'https://images.unsplash.com/photo-1490750967868-88aa4f44baee?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
+    { id: 'l2', url: 'https://images.unsplash.com/photo-1615966650071-855b15f29ad1?w=800&h=1200&fit=crop&q=80', photographer: 'Vows on the Move', photographerUrl: 'https://unsplash.com/@vowsonthemove' },
     { id: 'l3', url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
     { id: 'l4', url: 'https://images.unsplash.com/photo-1494972308805-463bc619d34e?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
   ],
