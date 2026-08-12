@@ -76,13 +76,13 @@ export function SessionPlayer() {
   const [remainingMs, setRemainingMs] = useState(durationMs);
   const [affirmationText, setAffirmationText] = useState('');
   const [affirmationVisible, setAffirmationVisible] = useState(false);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(true);
   const [currentGradientIndex, setCurrentGradientIndex] = useState(0);
   const [visualSkipSignal, setVisualSkipSignal] = useState(0);
   const lastAffIndexRef = useRef(-1);
   const skipOffsetRef = useRef(0);
   const lastDisplayedSecRef = useRef(-1);
-  const mutedRef = useRef(false);
+  const mutedRef = useRef(true);
 
   useEffect(() => {
     const custom = customAffirmations
@@ -96,7 +96,7 @@ export function SessionPlayer() {
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
     player.loop = true;
-    player.volume = MUSIC_VOLUME;
+    player.volume = mutedRef.current ? 0 : MUSIC_VOLUME;
     player.play();
 
     return () => {
