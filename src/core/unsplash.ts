@@ -21,9 +21,11 @@ const SEARCH_TERMS: Record<ThemeId, string> = {
 const CURATED_IMAGES: Record<ThemeId, UnsplashImage[]> = {
   rich: [
     { id: 'r1', url: 'https://images.unsplash.com/photo-1505843513577-22bb7d21e455?w=800&h=1200&fit=crop&q=80', photographer: 'Daniel Barnes', photographerUrl: 'https://unsplash.com/@dannybarness' },
-    { id: 'r2', url: 'https://images.unsplash.com/photo-1528154291023-a6525fabe5b4?w=800&h=1200&fit=crop&q=80', photographer: 'nikldn', photographerUrl: 'https://unsplash.com/@nikldn' },
+    { id: 'r2', url: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&h=1200&fit=crop&q=80', photographer: 'Josh Berquist', photographerUrl: 'https://unsplash.com/@bbtl' },
     { id: 'r3', url: 'https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=800&h=1200&fit=crop&q=80', photographer: 'Chris Leipelt', photographerUrl: 'https://unsplash.com/@cleipelt' },
     { id: 'r4', url: 'https://images.unsplash.com/photo-1769149255670-aa0ad6428dd6?w=800&h=1200&fit=crop&q=80', photographer: 'Long Chung', photographerUrl: 'https://unsplash.com/@chungj07' },
+    { id: 'r5', url: 'https://images.unsplash.com/photo-1784285688785-bc830f86cbb8?w=800&h=1200&fit=crop&q=80', photographer: 'Dubai Prod', photographerUrl: 'https://unsplash.com/@dubai_prod' },
+    { id: 'r6', url: 'https://images.unsplash.com/photo-1528154291023-a6525fabe5b4?w=800&h=1200&fit=crop&q=80', photographer: 'nikldn', photographerUrl: 'https://unsplash.com/@nikldn' },
   ],
   love: [
     { id: 'l1', url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
