@@ -20,10 +20,10 @@ const SEARCH_TERMS: Record<ThemeId, string> = {
 
 const CURATED_IMAGES: Record<ThemeId, UnsplashImage[]> = {
   rich: [
-    { id: 'r1', url: 'https://images.unsplash.com/photo-1553729459-uj8bt55070l7?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
-    { id: 'r2', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
-    { id: 'r3', url: 'https://images.unsplash.com/photo-1579547945413-497e1b99dac0?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
-    { id: 'r4', url: 'https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
+    { id: 'r1', url: 'https://images.unsplash.com/photo-1610375461246-83df859d849d?w=800&h=1200&fit=crop&q=80', photographer: 'Jingming Pan', photographerUrl: 'https://unsplash.com/@pokmer' },
+    { id: 'r2', url: 'https://images.unsplash.com/photo-1718752773178-a02768f6355d?w=800&h=1200&fit=crop&q=80', photographer: 'Scottsdale Mint', photographerUrl: 'https://unsplash.com/@scottsdalemint' },
+    { id: 'r3', url: 'https://images.unsplash.com/photo-1587925358603-c2eea5305bbc?w=800&h=1200&fit=crop&q=80', photographer: 'Logan Weaver', photographerUrl: 'https://unsplash.com/@lgnwvr' },
+    { id: 'r4', url: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&h=1200&fit=crop&q=80', photographer: 'Alexander Grey', photographerUrl: 'https://unsplash.com/@sharonmccutcheon' },
   ],
   love: [
     { id: 'l1', url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
