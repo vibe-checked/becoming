@@ -70,6 +70,14 @@ export function SessionPlayer() {
   }, [theme.gradients, userPhotos, selectedTheme, unsplashUris]);
 
   const player = useAudioPlayer(ambientSource);
+  // expo-audio can tear down the native player object out of band (e.g. during
+  // rapid unmount right after ending a session); calling into it afterward
+  // throws NativeSharedObjectNotFoundException, so every call is guarded.
+  const safePlayerCall = useCallback((fn: () => void) => {
+    try {
+      fn();
+    } catch {}
+  }, []);
   const affirmationsRef = useRef<string[]>([]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -95,23 +103,25 @@ export function SessionPlayer() {
 
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
-    player.loop = true;
-    player.volume = mutedRef.current ? 0 : MUSIC_VOLUME;
-    player.play();
+    safePlayerCall(() => {
+      player.loop = true;
+      player.volume = mutedRef.current ? 0 : MUSIC_VOLUME;
+      player.play();
+    });
 
     return () => {
       Speech.stop();
-      player.pause();
+      safePlayerCall(() => player.pause());
     };
-  }, [player]);
+  }, [player, safePlayerCall]);
 
   const handleDuck = useCallback(() => {
-    if (!mutedRef.current) player.volume = MUSIC_DUCK_VOLUME;
-  }, [player]);
+    if (!mutedRef.current) safePlayerCall(() => { player.volume = MUSIC_DUCK_VOLUME; });
+  }, [player, safePlayerCall]);
 
   const handleRestore = useCallback(() => {
-    if (!mutedRef.current) player.volume = MUSIC_VOLUME;
-  }, [player]);
+    if (!mutedRef.current) safePlayerCall(() => { player.volume = MUSIC_VOLUME; });
+  }, [player, safePlayerCall]);
 
   useEffect(() => {
     if (!sessionStartedAt) return;
@@ -128,7 +138,7 @@ export function SessionPlayer() {
       if (isSessionComplete(elapsed, durationMs)) {
         if (intervalRef.current) clearInterval(intervalRef.current);
         Speech.stop();
-        player.pause();
+        safePlayerCall(() => player.pause());
         endSession();
         return;
       }
@@ -157,12 +167,12 @@ export function SessionPlayer() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [sessionStartedAt, durationMs, endSession, theme.gradients.length, player]);
+  }, [sessionStartedAt, durationMs, endSession, theme.gradients.length, player, safePlayerCall]);
 
   const handleStop = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     Speech.stop();
-    player.pause();
+    safePlayerCall(() => player.pause());
     endSession();
   };
 
@@ -172,13 +182,13 @@ export function SessionPlayer() {
       mutedRef.current = next;
       if (next) {
         Speech.stop();
-        player.volume = 0;
+        safePlayerCall(() => { player.volume = 0; });
       } else {
-        player.volume = MUSIC_VOLUME;
+        safePlayerCall(() => { player.volume = MUSIC_VOLUME; });
       }
       return next;
     });
-  }, [player]);
+  }, [player, safePlayerCall]);
 
   const handleSkip = useCallback(() => {
     Speech.stop();
@@ -232,7 +242,7 @@ export function SessionPlayer() {
         onMuteToggle={handleMuteToggle}
         onSkip={handleSkip}
         onResonance={handleResonance}
-        onTapAnywhere={handleTapAnywhere}
+        tapSignal={tapKey}
       />
 
       <Pressable

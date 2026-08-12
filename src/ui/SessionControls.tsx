@@ -17,7 +17,7 @@ type Props = {
   onMuteToggle: () => void;
   onSkip: () => void;
   onResonance: () => void;
-  onTapAnywhere: () => void;
+  tapSignal: number;
 };
 
 export function SessionControls({
@@ -26,7 +26,7 @@ export function SessionControls({
   onMuteToggle,
   onSkip,
   onResonance,
-  onTapAnywhere,
+  tapSignal,
 }: Props) {
   const opacity = useSharedValue(1);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -52,7 +52,7 @@ export function SessionControls({
 
   useEffect(() => {
     show();
-  }, [onTapAnywhere, show]);
+  }, [tapSignal, show]);
 
   const animStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
