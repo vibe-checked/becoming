@@ -133,7 +133,6 @@ const CURATED_IMAGES: Record<ThemeId, UnsplashImage[]> = {
   ],
   health: [
     { id: 'h1', url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
-    { id: 'h2', url: 'https://images.unsplash.com/photo-1518173946687-a9dbba0cfa25?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
     { id: 'h3', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
     { id: 'h4', url: 'https://images.unsplash.com/photo-1476362555312-ab9e108a0b7e?w=800&h=1200&fit=crop&q=80', photographer: 'Unsplash', photographerUrl: '' },
     { id: 'health5', url: 'https://images.unsplash.com/photo-1524863479829-916d8e77f114?w=800&h=1200&fit=crop&q=80', photographer: 'Eneko Uruñuela', photographerUrl: 'https://unsplash.com/@nkuutz' },
@@ -157,7 +156,6 @@ const CURATED_IMAGES: Record<ThemeId, UnsplashImage[]> = {
     { id: 'health38', url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=1200&fit=crop&q=80', photographer: 'Anna Pelzer', photographerUrl: 'https://unsplash.com/@annapelzer' },
     { id: 'health39', url: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&h=1200&fit=crop&q=80', photographer: 'Brooke Lark', photographerUrl: 'https://unsplash.com/@brookelark' },
     { id: 'health40', url: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&h=1200&fit=crop&q=80', photographer: 'Nadine Primeau', photographerUrl: 'https://unsplash.com/@nadineprimeau' },
-    { id: 'health41', url: 'https://images.unsplash.com/photo-1494859802809-d069c3b71a8a?w=800&h=1200&fit=crop&q=80', photographer: 'Hermes Rivera', photographerUrl: 'https://unsplash.com/@hermez777' },
     { id: 'health42', url: 'https://images.unsplash.com/photo-1597958792579-bd3517df6399?w=800&h=1200&fit=crop&q=80', photographer: 'Andreas Rasmussen', photographerUrl: 'https://unsplash.com/@andreasdress' },
     { id: 'health43', url: 'https://images.unsplash.com/photo-1654923064926-be7e64267a31?w=800&h=1200&fit=crop&q=80', photographer: 'Eiliv Aceron', photographerUrl: 'https://unsplash.com/@shootdelicious' },
     { id: 'health44', url: 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?w=800&h=1200&fit=crop&q=80', photographer: 'Odiseo Castrejon', photographerUrl: 'https://unsplash.com/@edgarraw' },
