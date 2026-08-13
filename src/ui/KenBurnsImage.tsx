@@ -33,13 +33,22 @@ export function KenBurnsImage({ uri, active, speedMultiplier = 1 }: Props) {
   const translateY = useSharedValue(0);
 
   useEffect(() => {
+    // A slot's uri changes while it's still inactive (it's pre-loaded with
+    // the next image before the crossfade makes it active), so the reset
+    // to the resting frame must happen unconditionally here — otherwise it
+    // keeps whichever scale/pan its last active cycle ended at, and jumps
+    // to that stale zoomed-in frame the instant it becomes visible.
+    cancelAnimation(scale);
+    cancelAnimation(translateX);
+    cancelAnimation(translateY);
+    scale.value = SCALE_FROM;
+    translateX.value = 0;
+    translateY.value = 0;
+
     if (active) {
       const targetX = randomPan();
       const targetY = randomPan();
       const duration = IMAGE_DURATION_MS / speedMultiplier;
-      scale.value = SCALE_FROM;
-      translateX.value = 0;
-      translateY.value = 0;
 
       scale.value = withTiming(SCALE_TO, {
         duration,

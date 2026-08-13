@@ -75,7 +75,7 @@ export function SessionControls({
         style={[styles.btn, isFavorited && styles.btnActive]}
       >
         <Text style={styles.btnIcon}>{isFavorited ? '⭐' : '💫'}</Text>
-        <Text style={styles.btnLabel}>Resonance</Text>
+        <Text style={styles.btnLabel}>{isFavorited ? 'Resonated' : 'Resonance'}</Text>
       </Pressable>
 
       <Pressable onPress={() => handlePress(onSkip)} style={styles.btn}>
