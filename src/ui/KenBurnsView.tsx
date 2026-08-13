@@ -24,9 +24,10 @@ function randomPan(): number {
 type Props = {
   gradient: GradientCombo;
   active: boolean;
+  speedMultiplier?: number;
 };
 
-export function KenBurnsView({ gradient, active }: Props) {
+export function KenBurnsView({ gradient, active, speedMultiplier = 1 }: Props) {
   const { width: W, height: H } = useWindowDimensions();
   const scale = useSharedValue(SCALE_FROM);
   const translateX = useSharedValue(0);
@@ -36,20 +37,21 @@ export function KenBurnsView({ gradient, active }: Props) {
     if (active) {
       const targetX = randomPan();
       const targetY = randomPan();
+      const duration = IMAGE_DURATION_MS / speedMultiplier;
       scale.value = SCALE_FROM;
       translateX.value = 0;
       translateY.value = 0;
 
       scale.value = withTiming(SCALE_TO, {
-        duration: IMAGE_DURATION_MS,
+        duration,
         easing: Easing.linear,
       });
       translateX.value = withTiming(targetX, {
-        duration: IMAGE_DURATION_MS,
+        duration,
         easing: Easing.linear,
       });
       translateY.value = withTiming(targetY, {
-        duration: IMAGE_DURATION_MS,
+        duration,
         easing: Easing.linear,
       });
     }
@@ -59,7 +61,7 @@ export function KenBurnsView({ gradient, active }: Props) {
       cancelAnimation(translateX);
       cancelAnimation(translateY);
     };
-  }, [active, gradient, scale, translateX, translateY]);
+  }, [active, gradient, scale, translateX, translateY, speedMultiplier]);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [

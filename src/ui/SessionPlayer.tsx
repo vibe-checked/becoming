@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View, Pressable, Text } from 'react-native';
+import { Image } from 'expo-image';
 import { useAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import * as Speech from 'expo-speech';
 import { useKeepAwake } from 'expo-keep-awake';
@@ -21,6 +22,7 @@ import { fetchThemeImages } from '../core/unsplash';
 const TICK_MS = 50;
 const MUSIC_VOLUME = 0.5;
 const MUSIC_DUCK_VOLUME = 0.2;
+const SPEED_STEPS = [1, 1.5, 2, 2.5];
 
 const ambientSource = require('../../assets/music/ambient.mp3');
 
@@ -47,7 +49,12 @@ export function SessionPlayer() {
     let cancelled = false;
     fetchThemeImages(selectedTheme, 5).then((images) => {
       if (!cancelled && images.length > 0) {
-        setUnsplashUris(images.map((i) => i.url));
+        const urls = images.map((i) => i.url);
+        setUnsplashUris(urls);
+        // Warm the cache for the whole session's shuffled set up front, since
+        // otherwise each photo's first appearance is an uncached network
+        // fetch that can visibly stall mid-Ken-Burns-animation.
+        Image.prefetch(urls).catch(() => {});
       }
     });
     return () => { cancelled = true; };
@@ -90,6 +97,13 @@ export function SessionPlayer() {
   const skipOffsetRef = useRef(0);
   const lastDisplayedSecRef = useRef(-1);
   const mutedRef = useRef(true);
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const speedMultiplierRef = useRef(1);
+  // Elapsed time is accumulated tick-by-tick at the current speed rather than
+  // derived as (Date.now() - sessionStartedAt) * speedMultiplier, so changing
+  // speed mid-session doesn't cause a discontinuous jump in session progress.
+  const virtualElapsedRef = useRef(0);
+  const lastTickRealRef = useRef<number | null>(null);
 
   useEffect(() => {
     const custom = customAffirmations
@@ -125,8 +139,15 @@ export function SessionPlayer() {
   useEffect(() => {
     if (!sessionStartedAt) return;
 
+    virtualElapsedRef.current = 0;
+    lastTickRealRef.current = Date.now();
+
     intervalRef.current = setInterval(() => {
-      const elapsed = Date.now() - sessionStartedAt;
+      const now = Date.now();
+      const deltaReal = now - (lastTickRealRef.current ?? now);
+      lastTickRealRef.current = now;
+      virtualElapsedRef.current += deltaReal * speedMultiplierRef.current;
+      const elapsed = virtualElapsedRef.current;
       const remaining = Math.max(0, durationMs - elapsed);
       const displaySec = Math.ceil(remaining / 1000);
       if (displaySec !== lastDisplayedSecRef.current) {
@@ -197,6 +218,15 @@ export function SessionPlayer() {
     setVisualSkipSignal((s) => s + 1);
   }, []);
 
+  const handleSpeedCycle = useCallback(() => {
+    setSpeedMultiplier((prev) => {
+      const idx = SPEED_STEPS.indexOf(prev);
+      const next = SPEED_STEPS[(idx + 1) % SPEED_STEPS.length];
+      speedMultiplierRef.current = next;
+      return next;
+    });
+  }, []);
+
   const [currentVisualSource, setCurrentVisualSource] = useState<VisualSource | null>(null);
 
   const handleResonance = useCallback(() => {
@@ -222,6 +252,7 @@ export function SessionPlayer() {
         running={true}
         skipSignal={visualSkipSignal}
         onActiveSourceChange={setCurrentVisualSource}
+        speedMultiplier={speedMultiplier}
       />
 
       <SessionCountdown remainingMs={remainingMs} />
@@ -237,9 +268,11 @@ export function SessionPlayer() {
       <SessionControls
         muted={muted}
         isFavorited={isFav}
+        speedMultiplier={speedMultiplier}
         onMuteToggle={handleMuteToggle}
         onSkip={handleSkip}
         onResonance={handleResonance}
+        onSpeedCycle={handleSpeedCycle}
         tapSignal={tapKey}
       />
 

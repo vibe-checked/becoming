@@ -14,18 +14,22 @@ const FADE_MS = 400;
 type Props = {
   muted: boolean;
   isFavorited: boolean;
+  speedMultiplier: number;
   onMuteToggle: () => void;
   onSkip: () => void;
   onResonance: () => void;
+  onSpeedCycle: () => void;
   tapSignal: number;
 };
 
 export function SessionControls({
   muted,
   isFavorited,
+  speedMultiplier,
   onMuteToggle,
   onSkip,
   onResonance,
+  onSpeedCycle,
   tapSignal,
 }: Props) {
   const opacity = useSharedValue(1);
@@ -80,6 +84,14 @@ export function SessionControls({
       </Pressable>
 
       <Pressable
+        onPress={() => handlePress(onSpeedCycle)}
+        style={[styles.btn, speedMultiplier !== 1 && styles.btnActive]}
+      >
+        <Text style={styles.btnIcon}>⚡</Text>
+        <Text style={styles.btnLabel}>{speedMultiplier}x</Text>
+      </Pressable>
+
+      <Pressable
         onPress={() => handlePress(onMuteToggle)}
         style={[styles.btn, muted && styles.btnActive]}
       >
@@ -98,15 +110,15 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 16,
+    gap: 10,
   },
   btn: {
     alignItems: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 18,
+    paddingHorizontal: 12,
     borderRadius: 16,
     backgroundColor: 'rgba(0,0,0,0.4)',
-    minWidth: 80,
+    minWidth: 68,
   },
   btnActive: {
     backgroundColor: 'rgba(255,255,255,0.15)',

@@ -21,33 +21,51 @@ type Props = {
   running: boolean;
   skipSignal?: number;
   onActiveSourceChange?: (source: VisualSource) => void;
+  speedMultiplier?: number;
 };
 
-function VisualSlot({ source, active }: { source: VisualSource; active: boolean }) {
+function VisualSlot({
+  source,
+  active,
+  speedMultiplier,
+}: {
+  source: VisualSource;
+  active: boolean;
+  speedMultiplier: number;
+}) {
   if (source.type === 'photo') {
-    return <KenBurnsImage uri={source.uri} active={active} />;
+    return <KenBurnsImage uri={source.uri} active={active} speedMultiplier={speedMultiplier} />;
   }
-  return <KenBurnsView gradient={source.gradient} active={active} />;
+  return <KenBurnsView gradient={source.gradient} active={active} speedMultiplier={speedMultiplier} />;
 }
 
-export function CrossFadeView({ sources, running, skipSignal, onActiveSourceChange }: Props) {
+export function CrossFadeView({
+  sources,
+  running,
+  skipSignal,
+  onActiveSourceChange,
+  speedMultiplier = 1,
+}: Props) {
   const [slotA, setSlotA] = useState(0);
   const [slotB, setSlotB] = useState(Math.min(1, sources.length - 1));
   const [activeSlot, setActiveSlot] = useState<'A' | 'B'>('A');
   const opacityB = useSharedValue(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const indexRef = useRef(0);
+  const lastSkipSignalRef = useRef(skipSignal ?? 0);
 
   const advanceToNext = useCallback(() => {
     if (sources.length <= 1) return;
     const nextIdx = (indexRef.current + 1) % sources.length;
     indexRef.current = nextIdx;
 
+    const crossfadeMs = CROSSFADE_MS / speedMultiplier;
+
     if (activeSlot === 'A') {
       setSlotB(nextIdx);
       opacityB.value = 0;
       opacityB.value = withTiming(1, {
-        duration: CROSSFADE_MS,
+        duration: crossfadeMs,
         easing: Easing.inOut(Easing.ease),
       }, (finished) => {
         if (finished) runOnJS(setActiveSlot)('B');
@@ -56,19 +74,19 @@ export function CrossFadeView({ sources, running, skipSignal, onActiveSourceChan
       setSlotA(nextIdx);
       opacityB.value = 1;
       opacityB.value = withTiming(0, {
-        duration: CROSSFADE_MS,
+        duration: crossfadeMs,
         easing: Easing.inOut(Easing.ease),
       }, (finished) => {
         if (finished) runOnJS(setActiveSlot)('A');
       });
     }
-  }, [sources.length, activeSlot, opacityB]);
+  }, [sources.length, activeSlot, opacityB, speedMultiplier]);
 
   const scheduleNext = useCallback(() => {
     if (!running || sources.length <= 1) return;
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(advanceToNext, IMAGE_DURATION_MS - CROSSFADE_MS);
-  }, [running, sources.length, advanceToNext]);
+    timerRef.current = setTimeout(advanceToNext, (IMAGE_DURATION_MS - CROSSFADE_MS) / speedMultiplier);
+  }, [running, sources.length, advanceToNext, speedMultiplier]);
 
   useEffect(() => {
     if (running) {
@@ -80,7 +98,11 @@ export function CrossFadeView({ sources, running, skipSignal, onActiveSourceChan
   }, [running, activeSlot, scheduleNext]);
 
   useEffect(() => {
-    if (skipSignal && skipSignal > 0) {
+    // advanceToNext's identity changes every time activeSlot flips (a normal,
+    // non-skip transition), which would re-run this effect and double-advance
+    // unless we only react to skipSignal actually increasing.
+    if (skipSignal !== undefined && skipSignal > lastSkipSignalRef.current) {
+      lastSkipSignalRef.current = skipSignal;
       if (timerRef.current) clearTimeout(timerRef.current);
       advanceToNext();
     }
@@ -103,9 +125,9 @@ export function CrossFadeView({ sources, running, skipSignal, onActiveSourceChan
 
   return (
     <View style={styles.container}>
-      <VisualSlot source={srcA} active={running && activeSlot === 'A'} />
+      <VisualSlot source={srcA} active={running && activeSlot === 'A'} speedMultiplier={speedMultiplier} />
       <Animated.View style={[styles.overlay, animStyleB]}>
-        <VisualSlot source={srcB} active={running && activeSlot === 'B'} />
+        <VisualSlot source={srcB} active={running && activeSlot === 'B'} speedMultiplier={speedMultiplier} />
       </Animated.View>
     </View>
   );

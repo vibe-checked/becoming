@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { useWindowDimensions, Image } from 'react-native';
+import { useWindowDimensions } from 'react-native';
+import { Image } from 'expo-image';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -20,11 +21,12 @@ function randomPan(): number {
 type Props = {
   uri: string;
   active: boolean;
+  speedMultiplier?: number;
 };
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
-export function KenBurnsImage({ uri, active }: Props) {
+export function KenBurnsImage({ uri, active, speedMultiplier = 1 }: Props) {
   const { width: W, height: H } = useWindowDimensions();
   const scale = useSharedValue(SCALE_FROM);
   const translateX = useSharedValue(0);
@@ -34,20 +36,21 @@ export function KenBurnsImage({ uri, active }: Props) {
     if (active) {
       const targetX = randomPan();
       const targetY = randomPan();
+      const duration = IMAGE_DURATION_MS / speedMultiplier;
       scale.value = SCALE_FROM;
       translateX.value = 0;
       translateY.value = 0;
 
       scale.value = withTiming(SCALE_TO, {
-        duration: IMAGE_DURATION_MS,
+        duration,
         easing: Easing.linear,
       });
       translateX.value = withTiming(targetX, {
-        duration: IMAGE_DURATION_MS,
+        duration,
         easing: Easing.linear,
       });
       translateY.value = withTiming(targetY, {
-        duration: IMAGE_DURATION_MS,
+        duration,
         easing: Easing.linear,
       });
     }
@@ -57,7 +60,7 @@ export function KenBurnsImage({ uri, active }: Props) {
       cancelAnimation(translateX);
       cancelAnimation(translateY);
     };
-  }, [active, uri, scale, translateX, translateY]);
+  }, [active, uri, scale, translateX, translateY, speedMultiplier]);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [
@@ -70,7 +73,9 @@ export function KenBurnsImage({ uri, active }: Props) {
   return (
     <AnimatedImage
       source={{ uri }}
-      resizeMode="cover"
+      contentFit="cover"
+      cachePolicy="memory-disk"
+      transition={null}
       style={[
         {
           position: 'absolute' as const,
