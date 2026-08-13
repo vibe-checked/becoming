@@ -53,6 +53,13 @@ export function CrossFadeView({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const indexRef = useRef(0);
   const lastSkipSignalRef = useRef(skipSignal ?? 0);
+  // Tracks which slot the NEXT advanceToNext call should target, flipped
+  // synchronously on every call. `activeSlot` state only flips once a
+  // crossfade completes uninterrupted, so pressing Skip again before that
+  // (which rapid taps do) would otherwise re-target the same slot and reset
+  // its fade progress to 0 — snapping the other, stale slot briefly back
+  // into view instead of advancing forward.
+  const nextTargetRef = useRef<'A' | 'B'>('A');
 
   const advanceToNext = useCallback(() => {
     if (sources.length <= 1) return;
@@ -60,8 +67,10 @@ export function CrossFadeView({
     indexRef.current = nextIdx;
 
     const crossfadeMs = CROSSFADE_MS / speedMultiplier;
+    const target = nextTargetRef.current;
+    nextTargetRef.current = target === 'A' ? 'B' : 'A';
 
-    if (activeSlot === 'A') {
+    if (target === 'A') {
       setSlotB(nextIdx);
       opacityB.value = 0;
       opacityB.value = withTiming(1, {
@@ -80,7 +89,7 @@ export function CrossFadeView({
         if (finished) runOnJS(setActiveSlot)('A');
       });
     }
-  }, [sources.length, activeSlot, opacityB, speedMultiplier]);
+  }, [sources.length, opacityB, speedMultiplier]);
 
   const scheduleNext = useCallback(() => {
     if (!running || sources.length <= 1) return;
