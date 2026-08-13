@@ -32,6 +32,8 @@ export async function loadState(): Promise<PersistedState | null> {
           sessionCount: old.sessionHistory?.length || 0,
           currentStreak: 0,
           lastSessionDate: null,
+          streakFreezeAvailable: false,
+          freezeGrantedMonth: null,
           hiddenLibraryAffirmations: [],
           dismissedPrompts: [],
           dailyReminderHour: null,

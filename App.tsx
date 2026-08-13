@@ -9,6 +9,9 @@ import { ReflectionModal } from './src/ui/ReflectionModal';
 import { HighlightReel } from './src/ui/HighlightReel';
 import { StagedPrompt, getNextPrompt } from './src/ui/StagedPrompt';
 import { ReminderPicker } from './src/ui/ReminderPicker';
+import { StreakMilestoneModal } from './src/ui/StreakMilestoneModal';
+import * as Notifications from 'expo-notifications';
+import { scheduleUpcomingReminders } from './src/core/reminders';
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -24,10 +27,26 @@ export default function App() {
   const persist = useAppStore((s) => s.persist);
   const selectTheme = useAppStore((s) => s.selectTheme);
   const startSession = useAppStore((s) => s.startSession);
+  const dailyReminderHour = useAppStore((s) => s.dailyReminderHour);
+  const justHitMilestone = useAppStore((s) => s.justHitMilestone);
 
   useEffect(() => {
     hydrate().then(() => setReady(true));
   }, [hydrate]);
+
+  useEffect(() => {
+    // Local notifications can't repeat with different content per day, so
+    // the reminder is a rolling window of one-off notifications (see
+    // core/reminders.ts) — top it back up to a full window on every launch
+    // rather than only when the user changes the reminder time, so it never
+    // silently runs dry after the window's last day passes.
+    if (!ready || dailyReminderHour === null) return;
+    Notifications.getPermissionsAsync().then(({ status }) => {
+      if (status === 'granted') {
+        scheduleUpcomingReminders(dailyReminderHour).catch(() => {});
+      }
+    });
+  }, [ready, dailyReminderHour]);
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => {
@@ -39,7 +58,15 @@ export default function App() {
   }, [persist]);
 
   useEffect(() => {
-    if (screen === 'theme_picker' && sessionPhase === 'idle' && sessionCount > 0) {
+    // Skip the staged-prompt check when a streak milestone just fired —
+    // showing both overlays at once (a rare but possible collision, e.g. at
+    // sessionCount 3) would stack two full-screen modals on top of each other.
+    if (
+      screen === 'theme_picker' &&
+      sessionPhase === 'idle' &&
+      sessionCount > 0 &&
+      justHitMilestone === null
+    ) {
       const prompt = getNextPrompt(sessionCount, dismissedPrompts);
       if (prompt) {
         const timer = setTimeout(() => setActivePrompt(prompt), 500);
@@ -47,7 +74,7 @@ export default function App() {
       }
     }
     setActivePrompt(null);
-  }, [screen, sessionPhase, sessionCount, dismissedPrompts]);
+  }, [screen, sessionPhase, sessionCount, dismissedPrompts, justHitMilestone]);
 
   const handleDismissPrompt = () => {
     if (activePrompt) dismissPrompt(activePrompt);
@@ -85,6 +112,7 @@ export default function App() {
         )}
         {screen === 'session' && <SessionPlayer />}
         {sessionPhase === 'reflection' && <ReflectionModal />}
+        <StreakMilestoneModal />
         <StagedPrompt
           promptKey={activePrompt}
           onDismiss={handleDismissPrompt}

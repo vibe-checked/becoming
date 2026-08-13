@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { useAppStore } from '../store/useAppStore';
+import { scheduleUpcomingReminders } from '../core/reminders';
 
 const HOURS = [6, 7, 8, 9, 10, 11, 12, 17, 18, 19, 20, 21];
 
@@ -30,20 +31,7 @@ export function ReminderPicker({ visible, onClose }: Props) {
         return;
       }
 
-      await Notifications.cancelAllScheduledNotificationsAsync();
-
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'Time to Become',
-          body: 'Your daily affirmation session is waiting.',
-          sound: true,
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DAILY,
-          hour: selected,
-          minute: 0,
-        },
-      });
+      await scheduleUpcomingReminders(selected);
     }
 
     setDailyReminder(selected);

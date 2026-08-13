@@ -5,6 +5,8 @@ import { useAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import * as Speech from 'expo-speech';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ViewShot, { ViewShotRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
 import { useAppStore } from '../store/useAppStore';
 import { THEMES } from '../core/themes';
 import { getShuffledAffirmations } from '../core/affirmations';
@@ -260,25 +262,40 @@ export function SessionPlayer() {
   const [tapKey, setTapKey] = useState(0);
   const handleTapAnywhere = useCallback(() => setTapKey((k) => k + 1), []);
 
+  const shareShotRef = useRef<ViewShotRef>(null);
+  const handleShare = useCallback(async () => {
+    try {
+      const capture = shareShotRef.current?.capture;
+      if (!capture) return;
+      const uri = await capture();
+      const available = await Sharing.isAvailableAsync();
+      if (available) {
+        await Sharing.shareAsync(uri, { dialogTitle: 'Share this affirmation' });
+      }
+    } catch {}
+  }, []);
+
   return (
     <Pressable style={styles.root} onPress={handleTapAnywhere}>
-      <CrossFadeView
-        sources={visualSources}
-        running={true}
-        skipSignal={visualSkipSignal}
-        onActiveSourceChange={setCurrentVisualSource}
-        speedMultiplier={speedMultiplier}
-      />
+      <ViewShot ref={shareShotRef} style={StyleSheet.absoluteFill} options={{ format: 'jpg', quality: 0.92 }}>
+        <CrossFadeView
+          sources={visualSources}
+          running={true}
+          skipSignal={visualSkipSignal}
+          onActiveSourceChange={setCurrentVisualSource}
+          speedMultiplier={speedMultiplier}
+        />
+
+        <AffirmationCard
+          text={affirmationText}
+          visible={affirmationVisible}
+          ttsEnabled={!muted}
+          onDuckAudio={muted ? undefined : handleDuck}
+          onRestoreAudio={muted ? undefined : handleRestore}
+        />
+      </ViewShot>
 
       <SessionCountdown remainingMs={remainingMs} />
-
-      <AffirmationCard
-        text={affirmationText}
-        visible={affirmationVisible}
-        ttsEnabled={!muted}
-        onDuckAudio={muted ? undefined : handleDuck}
-        onRestoreAudio={muted ? undefined : handleRestore}
-      />
 
       <SessionControls
         muted={muted}
@@ -288,6 +305,7 @@ export function SessionPlayer() {
         onSkip={handleSkip}
         onResonance={handleResonance}
         onSpeedCycle={handleSpeedCycle}
+        onShare={handleShare}
         tapSignal={tapKey}
       />
 

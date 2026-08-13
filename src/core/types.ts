@@ -65,6 +65,8 @@ export type PersistedState = {
   sessionCount: number;
   currentStreak: number;
   lastSessionDate: string | null;
+  streakFreezeAvailable: boolean;
+  freezeGrantedMonth: string | null;
   hiddenLibraryAffirmations: string[];
   dismissedPrompts: string[];
   dailyReminderHour: number | null;

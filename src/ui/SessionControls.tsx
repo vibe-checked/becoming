@@ -20,6 +20,7 @@ type Props = {
   onSkip: () => void;
   onResonance: () => void;
   onSpeedCycle: () => void;
+  onShare: () => void;
   tapSignal: number;
 };
 
@@ -31,6 +32,7 @@ export function SessionControls({
   onSkip,
   onResonance,
   onSpeedCycle,
+  onShare,
   tapSignal,
 }: Props) {
   const opacity = useSharedValue(1);
@@ -119,6 +121,11 @@ export function SessionControls({
         <Text style={styles.btnIcon}>{muted ? '🔇' : '🔊'}</Text>
         <Text style={styles.btnLabel}>{muted ? 'Unmute' : 'Mute'}</Text>
       </Pressable>
+
+      <Pressable onPress={() => handlePress(onShare)} style={styles.btn}>
+        <Text style={styles.btnIcon}>📤</Text>
+        <Text style={styles.btnLabel}>Share</Text>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -131,7 +138,7 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 10,
+    gap: 8,
   },
   btnWrapper: {
     position: 'relative',
@@ -139,10 +146,10 @@ const styles = StyleSheet.create({
   btn: {
     alignItems: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     borderRadius: 16,
     backgroundColor: 'rgba(0,0,0,0.4)',
-    minWidth: 68,
+    minWidth: 60,
   },
   btnActive: {
     backgroundColor: 'rgba(255,255,255,0.15)',

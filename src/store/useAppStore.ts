@@ -20,6 +20,8 @@ type Store = {
   sessionCount: number;
   currentStreak: number;
   lastSessionDate: string | null;
+  streakFreezeAvailable: boolean;
+  freezeGrantedMonth: string | null;
   hiddenLibraryAffirmations: string[];
   dismissedPrompts: string[];
   dailyReminderHour: number | null;
@@ -28,12 +30,16 @@ type Store = {
   screen: 'theme_picker' | 'session';
   sessionPhase: 'idle' | 'playing' | 'reflection';
   sessionStartedAt: number | null;
+  // Ephemeral (not persisted): set right after a streak milestone is hit so
+  // the UI can show a one-off celebration, then cleared via clearMilestone.
+  justHitMilestone: number | null;
 
   selectTheme: (id: ThemeId) => void;
   selectDuration: (d: DurationMin) => void;
   startSession: () => void;
   endSession: () => void;
   submitReflection: (emoji: ReflectionEmoji, note: string) => void;
+  clearMilestone: () => void;
 
   addCustomAffirmation: (themeId: ThemeId, text: string) => void;
   removeCustomAffirmation: (id: string) => void;
@@ -54,9 +60,14 @@ type Store = {
 };
 
 const MAX_HISTORY = 200;
+const MILESTONES = [3, 7, 14, 30, 50, 100, 200, 365];
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function monthStr(): string {
+  return todayStr().slice(0, 7);
 }
 
 export const useAppStore = create<Store>((set, get) => ({
@@ -69,6 +80,8 @@ export const useAppStore = create<Store>((set, get) => ({
   sessionCount: 0,
   currentStreak: 0,
   lastSessionDate: null,
+  streakFreezeAvailable: false,
+  freezeGrantedMonth: null,
   hiddenLibraryAffirmations: [],
   dismissedPrompts: [],
   dailyReminderHour: null,
@@ -77,6 +90,7 @@ export const useAppStore = create<Store>((set, get) => ({
   screen: 'theme_picker',
   sessionPhase: 'idle',
   sessionStartedAt: null,
+  justHitMilestone: null,
 
   selectTheme: (id) => {
     set({ selectedTheme: id });
@@ -116,12 +130,37 @@ export const useAppStore = create<Store>((set, get) => ({
 
     const today = todayStr();
     let streak = s.currentStreak;
+    // One streak freeze is granted per calendar month; it's silently spent
+    // to keep a streak alive if exactly one day was missed, so a single busy
+    // day doesn't wipe out weeks of practice back to 1.
+    let freezeAvailable = s.streakFreezeAvailable;
+    let freezeGrantedMonth = s.freezeGrantedMonth;
+    const thisMonth = monthStr();
+    if (freezeGrantedMonth !== thisMonth) {
+      freezeAvailable = true;
+      freezeGrantedMonth = thisMonth;
+    }
+
     if (s.lastSessionDate !== today) {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const yStr = yesterday.toISOString().slice(0, 10);
-      streak = s.lastSessionDate === yStr ? streak + 1 : 1;
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+      const twoStr = twoDaysAgo.toISOString().slice(0, 10);
+
+      if (s.lastSessionDate === yStr) {
+        streak = streak + 1;
+      } else if (s.lastSessionDate === twoStr && freezeAvailable) {
+        streak = streak + 1;
+        freezeAvailable = false;
+      } else {
+        streak = 1;
+      }
     }
+
+    const justHitMilestone =
+      streak !== s.currentStreak && MILESTONES.includes(streak) ? streak : null;
 
     set({
       sessionHistory: history,
@@ -131,9 +170,14 @@ export const useAppStore = create<Store>((set, get) => ({
       sessionCount: s.sessionCount + 1,
       currentStreak: streak,
       lastSessionDate: today,
+      streakFreezeAvailable: freezeAvailable,
+      freezeGrantedMonth,
+      justHitMilestone,
     });
     get().persist();
   },
+
+  clearMilestone: () => set({ justHitMilestone: null }),
 
   addCustomAffirmation: (themeId, text) => {
     const newAff: CustomAffirmation = {
@@ -223,6 +267,8 @@ export const useAppStore = create<Store>((set, get) => ({
         sessionCount: saved.sessionCount || 0,
         currentStreak: saved.currentStreak || 0,
         lastSessionDate: saved.lastSessionDate ?? null,
+        streakFreezeAvailable: saved.streakFreezeAvailable ?? false,
+        freezeGrantedMonth: saved.freezeGrantedMonth ?? null,
         hiddenLibraryAffirmations: saved.hiddenLibraryAffirmations || [],
         dismissedPrompts: saved.dismissedPrompts || [],
         dailyReminderHour: saved.dailyReminderHour ?? null,
@@ -243,6 +289,8 @@ export const useAppStore = create<Store>((set, get) => ({
       sessionCount: s.sessionCount,
       currentStreak: s.currentStreak,
       lastSessionDate: s.lastSessionDate,
+      streakFreezeAvailable: s.streakFreezeAvailable,
+      freezeGrantedMonth: s.freezeGrantedMonth,
       hiddenLibraryAffirmations: s.hiddenLibraryAffirmations,
       dismissedPrompts: s.dismissedPrompts,
       dailyReminderHour: s.dailyReminderHour,
