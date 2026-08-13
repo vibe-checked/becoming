@@ -46,6 +46,14 @@ export function SessionPlayer() {
   const durationMs = selectedDuration * 60 * 1000;
 
   const [unsplashUris, setUnsplashUris] = useState<string[]>([]);
+  // Snapshot the resonated favorite once, at session mount, rather than
+  // reading favoriteImageByTheme live in visualSources below. Tapping
+  // Resonance mid-session writes a new favorite into the store immediately,
+  // and since CrossFadeView tracks its current photo by array index (not by
+  // identity), recomputing visualSources' order mid-session shifts every
+  // index to a different photo — the exact "jumps back to a previous
+  // picture" bug reported after 1.4 shipped favorite-first ordering.
+  const sessionFavoriteUriRef = useRef(favoriteImageByTheme[selectedTheme]);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,13 +92,16 @@ export function SessionPlayer() {
     // Open with the theme's resonated favorite, if any, instead of leaving
     // it to show up wherever it happens to land in the shuffle — guaranteed
     // placement is simpler and far more noticeable than nudging its odds.
-    const favoriteUri = favoriteImageByTheme[selectedTheme];
+    // Uses the mount-time snapshot (see sessionFavoriteUriRef above), not
+    // the live store value, so resonating mid-session doesn't reshuffle
+    // the array the session is already actively cycling through.
+    const favoriteUri = sessionFavoriteUriRef.current;
     if (favoriteUri) {
       const rest = allPhotos.filter((p) => p.type !== 'photo' || p.uri !== favoriteUri);
       return [{ type: 'photo' as const, uri: favoriteUri }, ...rest];
     }
     return allPhotos;
-  }, [theme.gradients, userPhotos, selectedTheme, unsplashUris, favoriteImageByTheme]);
+  }, [theme.gradients, userPhotos, selectedTheme, unsplashUris]);
 
   const player = useAudioPlayer(ambientSource);
   // expo-audio can tear down the native player object out of band (e.g. during
