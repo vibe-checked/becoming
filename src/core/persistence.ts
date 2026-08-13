@@ -26,7 +26,6 @@ export async function loadState(): Promise<PersistedState | null> {
           selectedTheme: old.selectedTheme,
           selectedDuration: old.selectedDuration,
           sessionHistory: old.sessionHistory || [],
-          favorites: [],
           customAffirmations: [],
           userPhotos: [],
           hasLaunched: old.hasLaunched,

@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import {
   CustomAffirmation,
   DurationMin,
-  Favorite,
   PersistedState,
   ReflectionEmoji,
   SessionRecord,
@@ -15,7 +14,6 @@ type Store = {
   selectedTheme: ThemeId;
   selectedDuration: DurationMin;
   sessionHistory: SessionRecord[];
-  favorites: Favorite[];
   customAffirmations: CustomAffirmation[];
   userPhotos: UserPhoto[];
   hasLaunched: boolean;
@@ -37,8 +35,6 @@ type Store = {
   endSession: () => void;
   submitReflection: (emoji: ReflectionEmoji, note: string) => void;
 
-  addFavorite: (fav: Omit<Favorite, 'id' | 'savedAt'>) => void;
-  removeFavorite: (id: string) => void;
   addCustomAffirmation: (themeId: ThemeId, text: string) => void;
   removeCustomAffirmation: (id: string) => void;
   editCustomAffirmation: (id: string, text: string) => void;
@@ -67,7 +63,6 @@ export const useAppStore = create<Store>((set, get) => ({
   selectedTheme: 'rich',
   selectedDuration: 5,
   sessionHistory: [],
-  favorites: [],
   customAffirmations: [],
   userPhotos: [],
   hasLaunched: false,
@@ -137,26 +132,6 @@ export const useAppStore = create<Store>((set, get) => ({
       currentStreak: streak,
       lastSessionDate: today,
     });
-    get().persist();
-  },
-
-  addFavorite: (fav) => {
-    const s = get();
-    const exists = s.favorites.some(
-      (f) => f.themeId === fav.themeId && f.affirmation === fav.affirmation,
-    );
-    if (exists) return;
-    const newFav: Favorite = {
-      ...fav,
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      savedAt: Date.now(),
-    };
-    set({ favorites: [...s.favorites, newFav] });
-    get().persist();
-  },
-
-  removeFavorite: (id) => {
-    set({ favorites: get().favorites.filter((f) => f.id !== id) });
     get().persist();
   },
 
@@ -242,7 +217,6 @@ export const useAppStore = create<Store>((set, get) => ({
         selectedTheme: saved.selectedTheme,
         selectedDuration: saved.selectedDuration,
         sessionHistory: saved.sessionHistory || [],
-        favorites: saved.favorites || [],
         customAffirmations: saved.customAffirmations || [],
         userPhotos: saved.userPhotos || [],
         hasLaunched: saved.hasLaunched,
@@ -263,7 +237,6 @@ export const useAppStore = create<Store>((set, get) => ({
       selectedTheme: s.selectedTheme,
       selectedDuration: s.selectedDuration,
       sessionHistory: s.sessionHistory,
-      favorites: s.favorites,
       customAffirmations: s.customAffirmations,
       userPhotos: s.userPhotos,
       hasLaunched: s.hasLaunched,

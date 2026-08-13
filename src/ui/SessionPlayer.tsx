@@ -75,11 +75,20 @@ export function SessionPlayer() {
     // (e.g. photos haven't loaded yet), not a guaranteed part of every
     // session — appending them unconditionally meant every session hit a
     // ~12s block of plain color once it had cycled through all the photos.
-    if (photoSources.length + unsplashSources.length === 0) {
+    const allPhotos = [...unsplashSources, ...photoSources];
+    if (allPhotos.length === 0) {
       return theme.gradients.map((g) => ({ type: 'gradient' as const, gradient: g }));
     }
-    return [...unsplashSources, ...photoSources];
-  }, [theme.gradients, userPhotos, selectedTheme, unsplashUris]);
+    // Open with the theme's resonated favorite, if any, instead of leaving
+    // it to show up wherever it happens to land in the shuffle — guaranteed
+    // placement is simpler and far more noticeable than nudging its odds.
+    const favoriteUri = favoriteImageByTheme[selectedTheme];
+    if (favoriteUri) {
+      const rest = allPhotos.filter((p) => p.type !== 'photo' || p.uri !== favoriteUri);
+      return [{ type: 'photo' as const, uri: favoriteUri }, ...rest];
+    }
+    return allPhotos;
+  }, [theme.gradients, userPhotos, selectedTheme, unsplashUris, favoriteImageByTheme]);
 
   const player = useAudioPlayer(ambientSource);
   // expo-audio can tear down the native player object out of band (e.g. during

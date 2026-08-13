@@ -22,6 +22,8 @@ export default function App() {
   const dismissPrompt = useAppStore((s) => s.dismissPrompt);
   const hydrate = useAppStore((s) => s.hydrate);
   const persist = useAppStore((s) => s.persist);
+  const selectTheme = useAppStore((s) => s.selectTheme);
+  const startSession = useAppStore((s) => s.startSession);
 
   useEffect(() => {
     hydrate().then(() => setReady(true));
@@ -72,7 +74,14 @@ export default function App() {
           <ThemePicker onOpenHighlightReel={() => setShowReel(true)} />
         )}
         {screen === 'theme_picker' && showReel && (
-          <HighlightReel onClose={() => setShowReel(false)} />
+          <HighlightReel
+            onClose={() => setShowReel(false)}
+            onSelectTheme={(id) => {
+              setShowReel(false);
+              selectTheme(id);
+              startSession();
+            }}
+          />
         )}
         {screen === 'session' && <SessionPlayer />}
         {sessionPhase === 'reflection' && <ReflectionModal />}

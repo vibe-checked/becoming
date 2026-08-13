@@ -41,14 +41,6 @@ export type ThemeConfig = {
   gradients: readonly [GradientCombo, GradientCombo, GradientCombo];
 };
 
-export type Favorite = {
-  id: string;
-  themeId: ThemeId;
-  affirmation: string;
-  gradientIndex: number;
-  savedAt: number;
-};
-
 export type CustomAffirmation = {
   id: string;
   themeId: ThemeId;
@@ -67,7 +59,6 @@ export type PersistedState = {
   selectedTheme: ThemeId;
   selectedDuration: DurationMin;
   sessionHistory: SessionRecord[];
-  favorites: Favorite[];
   customAffirmations: CustomAffirmation[];
   userPhotos: UserPhoto[];
   hasLaunched: boolean;
