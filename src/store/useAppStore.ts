@@ -25,6 +25,7 @@ type Store = {
   hiddenLibraryAffirmations: string[];
   dismissedPrompts: string[];
   dailyReminderHour: number | null;
+  favoriteImageByTheme: Partial<Record<ThemeId, string>>;
 
   screen: 'theme_picker' | 'session';
   sessionPhase: 'idle' | 'playing' | 'reflection';
@@ -46,6 +47,8 @@ type Store = {
 
   addUserPhoto: (themeId: ThemeId, uri: string) => void;
   removeUserPhoto: (id: string) => void;
+
+  setFavoriteImage: (themeId: ThemeId, url: string) => void;
 
   dismissPrompt: (key: string) => void;
   setDailyReminder: (hour: number | null) => void;
@@ -74,6 +77,7 @@ export const useAppStore = create<Store>((set, get) => ({
   hiddenLibraryAffirmations: [],
   dismissedPrompts: [],
   dailyReminderHour: null,
+  favoriteImageByTheme: {},
 
   screen: 'theme_picker',
   sessionPhase: 'idle',
@@ -203,6 +207,18 @@ export const useAppStore = create<Store>((set, get) => ({
     get().persist();
   },
 
+  setFavoriteImage: (themeId, url) => {
+    const s = get();
+    const next = { ...s.favoriteImageByTheme };
+    if (next[themeId] === url) {
+      delete next[themeId];
+    } else {
+      next[themeId] = url;
+    }
+    set({ favoriteImageByTheme: next });
+    get().persist();
+  },
+
   addUserPhoto: (themeId, uri) => {
     const photo: UserPhoto = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -236,6 +252,7 @@ export const useAppStore = create<Store>((set, get) => ({
         hiddenLibraryAffirmations: saved.hiddenLibraryAffirmations || [],
         dismissedPrompts: saved.dismissedPrompts || [],
         dailyReminderHour: saved.dailyReminderHour ?? null,
+        favoriteImageByTheme: saved.favoriteImageByTheme || {},
       });
     }
   },
@@ -256,6 +273,7 @@ export const useAppStore = create<Store>((set, get) => ({
       hiddenLibraryAffirmations: s.hiddenLibraryAffirmations,
       dismissedPrompts: s.dismissedPrompts,
       dailyReminderHour: s.dailyReminderHour,
+      favoriteImageByTheme: s.favoriteImageByTheme,
       version: 2,
     };
     saveState(data).catch(() => {});

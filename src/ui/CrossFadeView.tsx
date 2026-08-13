@@ -20,6 +20,7 @@ type Props = {
   sources: VisualSource[];
   running: boolean;
   skipSignal?: number;
+  onActiveSourceChange?: (source: VisualSource) => void;
 };
 
 function VisualSlot({ source, active }: { source: VisualSource; active: boolean }) {
@@ -29,7 +30,7 @@ function VisualSlot({ source, active }: { source: VisualSource; active: boolean 
   return <KenBurnsView gradient={source.gradient} active={active} />;
 }
 
-export function CrossFadeView({ sources, running, skipSignal }: Props) {
+export function CrossFadeView({ sources, running, skipSignal, onActiveSourceChange }: Props) {
   const [slotA, setSlotA] = useState(0);
   const [slotB, setSlotB] = useState(Math.min(1, sources.length - 1));
   const [activeSlot, setActiveSlot] = useState<'A' | 'B'>('A');
@@ -84,6 +85,12 @@ export function CrossFadeView({ sources, running, skipSignal }: Props) {
       advanceToNext();
     }
   }, [skipSignal, advanceToNext]);
+
+  useEffect(() => {
+    if (sources.length === 0) return;
+    const activeIndex = activeSlot === 'A' ? slotA : slotB;
+    onActiveSourceChange?.(sources[activeIndex % sources.length]);
+  }, [activeSlot, slotA, slotB, sources, onActiveSourceChange]);
 
   const animStyleB = useAnimatedStyle(() => ({
     opacity: opacityB.value,

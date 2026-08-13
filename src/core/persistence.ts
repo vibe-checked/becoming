@@ -36,6 +36,7 @@ export async function loadState(): Promise<PersistedState | null> {
           hiddenLibraryAffirmations: [],
           dismissedPrompts: [],
           dailyReminderHour: null,
+          favoriteImageByTheme: {},
           version: 2,
         };
         await saveState(migrated);

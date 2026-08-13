@@ -77,5 +77,6 @@ export type PersistedState = {
   hiddenLibraryAffirmations: string[];
   dismissedPrompts: string[];
   dailyReminderHour: number | null;
+  favoriteImageByTheme: Partial<Record<ThemeId, string>>;
   version: 2;
 };

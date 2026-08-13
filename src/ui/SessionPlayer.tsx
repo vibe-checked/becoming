@@ -32,9 +32,8 @@ export function SessionPlayer() {
   const selectedDuration = useAppStore((s) => s.selectedDuration);
   const sessionStartedAt = useAppStore((s) => s.sessionStartedAt);
   const endSession = useAppStore((s) => s.endSession);
-  const addFavorite = useAppStore((s) => s.addFavorite);
-  const removeFavorite = useAppStore((s) => s.removeFavorite);
-  const favorites = useAppStore((s) => s.favorites);
+  const favoriteImageByTheme = useAppStore((s) => s.favoriteImageByTheme);
+  const setFavoriteImage = useAppStore((s) => s.setFavoriteImage);
   const customAffirmations = useAppStore((s) => s.customAffirmations);
   const hiddenLibraryAffirmations = useAppStore((s) => s.hiddenLibraryAffirmations);
   const userPhotos = useAppStore((s) => s.userPhotos);
@@ -198,25 +197,19 @@ export function SessionPlayer() {
     setVisualSkipSignal((s) => s + 1);
   }, []);
 
+  const [currentVisualSource, setCurrentVisualSource] = useState<VisualSource | null>(null);
+
   const handleResonance = useCallback(() => {
-    if (!affirmationText) return;
-    const existing = favorites.find(
-      (f) => f.themeId === selectedTheme && f.affirmation === affirmationText,
-    );
-    if (existing) {
-      removeFavorite(existing.id);
-    } else {
-      addFavorite({
-        themeId: selectedTheme,
-        affirmation: affirmationText,
-        gradientIndex: currentGradientIndex,
-      });
-    }
-  }, [affirmationText, selectedTheme, currentGradientIndex, favorites, addFavorite, removeFavorite]);
+    if (!currentVisualSource || currentVisualSource.type !== 'photo') return;
+    setFavoriteImage(selectedTheme, currentVisualSource.uri);
+  }, [currentVisualSource, selectedTheme, setFavoriteImage]);
 
   const isFav = useMemo(
-    () => favorites.some((f) => f.themeId === selectedTheme && f.affirmation === affirmationText),
-    [favorites, selectedTheme, affirmationText],
+    () =>
+      !!currentVisualSource &&
+      currentVisualSource.type === 'photo' &&
+      favoriteImageByTheme[selectedTheme] === currentVisualSource.uri,
+    [currentVisualSource, favoriteImageByTheme, selectedTheme],
   );
 
   const [tapKey, setTapKey] = useState(0);
@@ -224,7 +217,12 @@ export function SessionPlayer() {
 
   return (
     <Pressable style={styles.root} onPress={handleTapAnywhere}>
-      <CrossFadeView sources={visualSources} running={true} skipSignal={visualSkipSignal} />
+      <CrossFadeView
+        sources={visualSources}
+        running={true}
+        skipSignal={visualSkipSignal}
+        onActiveSourceChange={setCurrentVisualSource}
+      />
 
       <SessionCountdown remainingMs={remainingMs} />
 
