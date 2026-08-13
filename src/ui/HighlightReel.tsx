@@ -38,7 +38,8 @@ export function HighlightReel({ onClose }: Props) {
         <View style={styles.empty}>
           <Text style={styles.emptyIcon}>💫</Text>
           <Text style={styles.emptyText}>
-            Tap Resonance during a session to save affirmations you connect with.
+            Previously saved affirmations live here. Resonance now saves a
+            favorite photo per theme instead, so nothing new gets added here.
           </Text>
         </View>
       ) : (

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useCallback } from 'react';
-import { StyleSheet, Pressable, Text } from 'react-native';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
+import { StyleSheet, Pressable, Text, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,6 +7,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { ResonanceBurst } from './ResonanceBurst';
 
 const AUTO_HIDE_MS = 8000;
 const FADE_MS = 400;
@@ -68,15 +69,35 @@ export function SessionControls({
     show();
   };
 
+  const [bursts, setBursts] = useState<number[]>([]);
+  const burstIdRef = useRef(0);
+
+  const removeBurst = useCallback((id: number) => {
+    setBursts((prev) => prev.filter((b) => b !== id));
+  }, []);
+
+  const handleResonancePress = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    onResonance();
+    show();
+    const id = burstIdRef.current++;
+    setBursts((prev) => [...prev, id]);
+  };
+
   return (
     <Animated.View style={[styles.bar, animStyle]} pointerEvents="box-none">
-      <Pressable
-        onPress={() => handlePress(onResonance)}
-        style={[styles.btn, isFavorited && styles.btnActive]}
-      >
-        <Text style={styles.btnIcon}>{isFavorited ? '⭐' : '💫'}</Text>
-        <Text style={styles.btnLabel}>{isFavorited ? 'Resonated' : 'Resonance'}</Text>
-      </Pressable>
+      <View style={styles.btnWrapper}>
+        {bursts.map((id) => (
+          <ResonanceBurst key={id} onDone={() => removeBurst(id)} />
+        ))}
+        <Pressable
+          onPress={handleResonancePress}
+          style={[styles.btn, isFavorited && styles.btnActive]}
+        >
+          <Text style={styles.btnIcon}>{isFavorited ? '⭐' : '💫'}</Text>
+          <Text style={styles.btnLabel}>Resonance</Text>
+        </Pressable>
+      </View>
 
       <Pressable onPress={() => handlePress(onSkip)} style={styles.btn}>
         <Text style={styles.btnIcon}>⏭️</Text>
@@ -111,6 +132,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 10,
+  },
+  btnWrapper: {
+    position: 'relative',
   },
   btn: {
     alignItems: 'center',

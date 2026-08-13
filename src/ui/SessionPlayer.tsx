@@ -47,7 +47,10 @@ export function SessionPlayer() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchThemeImages(selectedTheme, 5).then((images) => {
+    // The `count` argument only matters for the live Unsplash API path,
+    // which isn't wired up (no API key is ever set) — the curated fallback
+    // that always runs returns its whole shuffled per-theme list regardless.
+    fetchThemeImages(selectedTheme).then((images) => {
       if (!cancelled && images.length > 0) {
         const urls = images.map((i) => i.url);
         setUnsplashUris(urls);
@@ -61,10 +64,6 @@ export function SessionPlayer() {
   }, [selectedTheme]);
 
   const visualSources: VisualSource[] = useMemo(() => {
-    const gradientSources: VisualSource[] = theme.gradients.map((g) => ({
-      type: 'gradient' as const,
-      gradient: g,
-    }));
     const photoSources: VisualSource[] = userPhotos
       .filter((p) => p.themeId === selectedTheme)
       .map((p) => ({ type: 'photo' as const, uri: p.uri }));
@@ -72,7 +71,14 @@ export function SessionPlayer() {
       type: 'photo' as const,
       uri,
     }));
-    return [...unsplashSources, ...photoSources, ...gradientSources];
+    // Gradients are a fallback for when there's no photo to show at all
+    // (e.g. photos haven't loaded yet), not a guaranteed part of every
+    // session — appending them unconditionally meant every session hit a
+    // ~12s block of plain color once it had cycled through all the photos.
+    if (photoSources.length + unsplashSources.length === 0) {
+      return theme.gradients.map((g) => ({ type: 'gradient' as const, gradient: g }));
+    }
+    return [...unsplashSources, ...photoSources];
   }, [theme.gradients, userPhotos, selectedTheme, unsplashUris]);
 
   const player = useAudioPlayer(ambientSource);

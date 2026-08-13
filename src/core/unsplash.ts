@@ -480,6 +480,10 @@ function shuffle<T>(items: T[]): T[] {
 
 export async function fetchThemeImages(
   themeId: ThemeId,
+  // Only applies to the live Unsplash API path below (as `per_page`). The
+  // curated fallback intentionally returns its whole shuffled list rather
+  // than slicing to `count`, since the curated sets were built specifically
+  // to give a long session plenty of unique images before repeating.
   count: number = 10,
 ): Promise<UnsplashImage[]> {
   if (apiKey) {

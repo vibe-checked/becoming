@@ -62,7 +62,7 @@ export function ThemePicker({ onOpenHighlightReel }: Props) {
           ? `🔥 ${currentStreak} day streak · ${sessionCount} sessions`
           : sessionCount > 0
             ? `${sessionCount} session${sessionCount === 1 ? '' : 's'} completed`
-            : 'Choose your focus · long press to customize'}
+            : 'Choose your focus · long-press a card to customize'}
       </Text>
 
       <View style={styles.durationRow}>

@@ -24,13 +24,13 @@ const PROMPTS: Record<string, PromptConfig> = {
   add_photos: {
     emoji: '📸',
     title: 'Add your own photos?',
-    body: 'Long-press a theme card to add personal photos that play during your session.',
+    body: 'On the home screen, long-press a theme tile to add personal photos that play during that theme’s sessions.',
     actionLabel: 'Got it',
   },
   write_affirmation: {
     emoji: '✍️',
     title: 'Write your own affirmation?',
-    body: 'Long-press a theme card to add custom affirmations that mix with the library.',
+    body: 'On the home screen, long-press a theme tile to add your own affirmations, mixed into that theme’s sessions.',
     actionLabel: 'Got it',
   },
   set_reminder: {
