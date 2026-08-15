@@ -12,6 +12,9 @@ import { ReminderPicker } from './src/ui/ReminderPicker';
 import { StreakMilestoneModal } from './src/ui/StreakMilestoneModal';
 import * as Notifications from 'expo-notifications';
 import { scheduleUpcomingReminders } from './src/core/reminders';
+import { getDailyAffirmation } from './src/core/affirmations';
+import { THEMES } from './src/core/themes';
+import StreakWidget from './widgets/StreakWidget';
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -29,10 +32,28 @@ export default function App() {
   const startSession = useAppStore((s) => s.startSession);
   const dailyReminderHour = useAppStore((s) => s.dailyReminderHour);
   const justHitMilestone = useAppStore((s) => s.justHitMilestone);
+  const currentStreak = useAppStore((s) => s.currentStreak);
+  const selectedTheme = useAppStore((s) => s.selectedTheme);
 
   useEffect(() => {
     hydrate().then(() => setReady(true));
   }, [hydrate]);
+
+  useEffect(() => {
+    // Keep the home screen widget in sync with the current streak and
+    // selected theme. Widgets run in a separate process, so this snapshot is
+    // the only way they see fresh data.
+    if (!ready) return;
+    const theme = THEMES[selectedTheme];
+    StreakWidget.updateSnapshot({
+      streak: currentStreak,
+      affirmation: getDailyAffirmation(selectedTheme),
+      themeEmoji: theme.emoji,
+      themeLabel: theme.label,
+      bgColor: theme.palette.bg,
+      accentColor: theme.palette.accent,
+    });
+  }, [ready, currentStreak, selectedTheme]);
 
   useEffect(() => {
     // Local notifications can't repeat with different content per day, so

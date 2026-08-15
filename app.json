@@ -47,7 +47,21 @@
       ],
       "expo-image",
       "expo-sharing",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "StreakWidget",
+              "displayName": "Streak & Affirmation",
+              "description": "Shows your current streak and today's affirmation.",
+              "contentMarginsDisabled": true,
+              "supportedFamilies": ["systemSmall", "systemMedium"]
+            }
+          ]
+        }
+      ]
     ]
   }
 }

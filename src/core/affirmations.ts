@@ -263,6 +263,13 @@ export function getAffirmations(themeId: ThemeId): string[] {
   return AFFIRMATIONS[themeId];
 }
 
+export function getDailyAffirmation(themeId: ThemeId, date: Date = new Date()): string {
+  const affirmations = AFFIRMATIONS[themeId];
+  const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 1);
+  const dayOfYear = Math.floor((Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - startOfYear) / 86400000);
+  return affirmations[dayOfYear % affirmations.length];
+}
+
 export function getShuffledAffirmations(themeId: ThemeId): string[] {
   const arr = [...AFFIRMATIONS[themeId]];
   for (let i = arr.length - 1; i > 0; i--) {
