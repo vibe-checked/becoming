@@ -17,6 +17,7 @@ import { THEMES } from '../core/themes';
 import { getAffirmations } from '../core/affirmations';
 import { ThemeId } from '../core/types';
 import { PhotoPickerButton } from './PhotoPickerButton';
+import { VoiceRecordButton } from './VoiceRecordButton';
 
 type Props = {
   visible: boolean;
@@ -30,6 +31,7 @@ export function CustomAffirmationsModal({ visible, themeId, onClose }: Props) {
   const addCustomAffirmation = useAppStore((s) => s.addCustomAffirmation);
   const removeCustomAffirmation = useAppStore((s) => s.removeCustomAffirmation);
   const editCustomAffirmation = useAppStore((s) => s.editCustomAffirmation);
+  const setCustomAffirmationVoice = useAppStore((s) => s.setCustomAffirmationVoice);
   const userPhotos = useAppStore((s) => s.userPhotos);
   const removeUserPhoto = useAppStore((s) => s.removeUserPhoto);
   const hiddenLibraryAffirmations = useAppStore((s) => s.hiddenLibraryAffirmations);
@@ -135,6 +137,12 @@ export function CustomAffirmationsModal({ visible, themeId, onClose }: Props) {
                       >
                         <Text style={styles.affText}>{aff.text}</Text>
                       </Pressable>
+                      <VoiceRecordButton
+                        affirmationId={aff.id}
+                        voiceUri={aff.voiceUri}
+                        onVoiceRecorded={(uri) => setCustomAffirmationVoice(aff.id, uri)}
+                        onVoiceRemoved={() => setCustomAffirmationVoice(aff.id, undefined)}
+                      />
                       <Pressable
                         onPress={() => removeCustomAffirmation(aff.id)}
                         hitSlop={8}

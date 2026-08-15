@@ -44,6 +44,7 @@ type Store = {
   addCustomAffirmation: (themeId: ThemeId, text: string) => void;
   removeCustomAffirmation: (id: string) => void;
   editCustomAffirmation: (id: string, text: string) => void;
+  setCustomAffirmationVoice: (id: string, voiceUri: string | undefined) => void;
 
   toggleLibraryAffirmation: (text: string) => void;
 
@@ -199,6 +200,15 @@ export const useAppStore = create<Store>((set, get) => ({
     set({
       customAffirmations: get().customAffirmations.map((a) =>
         a.id === id ? { ...a, text } : a,
+      ),
+    });
+    get().persist();
+  },
+
+  setCustomAffirmationVoice: (id, voiceUri) => {
+    set({
+      customAffirmations: get().customAffirmations.map((a) =>
+        a.id === id ? { ...a, voiceUri } : a,
       ),
     });
     get().persist();

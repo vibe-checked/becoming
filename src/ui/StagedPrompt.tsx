@@ -42,7 +42,7 @@ const PROMPTS: Record<string, PromptConfig> = {
   record_voice: {
     emoji: '🎙️',
     title: 'Record your own voice?',
-    body: 'Coming soon — record yourself reading affirmations for an even more personal experience.',
+    body: 'On the home screen, long-press a theme tile, then tap 🎙️ next to any of your custom affirmations to hear it in your own voice during sessions.',
     actionLabel: 'Got it',
   },
 };

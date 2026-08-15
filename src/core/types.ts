@@ -46,6 +46,7 @@ export type CustomAffirmation = {
   themeId: ThemeId;
   text: string;
   createdAt: number;
+  voiceUri?: string;
 };
 
 export type UserPhoto = {

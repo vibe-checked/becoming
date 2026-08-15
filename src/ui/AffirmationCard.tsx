@@ -10,6 +10,7 @@ import Animated, {
   cancelAnimation,
 } from 'react-native-reanimated';
 import * as Speech from 'expo-speech';
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import {
   AFFIRMATION_FADE_IN_MS,
   AFFIRMATION_HOLD_MS,
@@ -20,6 +21,7 @@ type Props = {
   text: string;
   visible: boolean;
   ttsEnabled: boolean;
+  voiceUri?: string;
   onDuckAudio?: () => void;
   onRestoreAudio?: () => void;
 };
@@ -28,6 +30,7 @@ export function AffirmationCard({
   text,
   visible,
   ttsEnabled,
+  voiceUri,
   onDuckAudio,
   onRestoreAudio,
 }: Props) {
@@ -37,6 +40,16 @@ export function AffirmationCard({
   const translateY = useSharedValue(12);
   const prevTextRef = useRef('');
   const displayTextRef = useRef('');
+  const voicePlayer = useAudioPlayer(null);
+  const voiceStatus = useAudioPlayerStatus(voicePlayer);
+  const onRestoreAudioRef = useRef(onRestoreAudio);
+  onRestoreAudioRef.current = onRestoreAudio;
+
+  useEffect(() => {
+    if (voiceStatus.didJustFinish) {
+      onRestoreAudioRef.current?.();
+    }
+  }, [voiceStatus.didJustFinish]);
 
   useEffect(() => {
     if (visible && text) {
@@ -76,18 +89,27 @@ export function AffirmationCard({
 
         if (ttsEnabled) {
           onDuckAudio?.();
-          Speech.speak(text, {
-            language: 'en-US',
-            rate: 0.85,
-            pitch: 1.0,
-            onDone: () => onRestoreAudio?.(),
-            onStopped: () => onRestoreAudio?.(),
-            onError: () => onRestoreAudio?.(),
-          });
+          if (voiceUri) {
+            // Play the user's own recording instead of TTS — completion is
+            // handled by the didJustFinish effect above, since AudioPlayer's
+            // play() doesn't take a completion callback the way Speech does.
+            voicePlayer.replace(voiceUri);
+            voicePlayer.seekTo(0);
+            voicePlayer.play();
+          } else {
+            Speech.speak(text, {
+              language: 'en-US',
+              rate: 0.85,
+              pitch: 1.0,
+              onDone: () => onRestoreAudio?.(),
+              onStopped: () => onRestoreAudio?.(),
+              onError: () => onRestoreAudio?.(),
+            });
+          }
         }
       }
     }
-  }, [visible, text, ttsEnabled, opacity, scale, translateY, onDuckAudio, onRestoreAudio]);
+  }, [visible, text, ttsEnabled, voiceUri, opacity, scale, translateY, onDuckAudio, onRestoreAudio, voicePlayer]);
 
   const animStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

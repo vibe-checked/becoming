@@ -142,6 +142,17 @@ export function SessionPlayer() {
     affirmationsRef.current = [...custom, ...library];
   }, [selectedTheme, customAffirmations, hiddenLibraryAffirmations]);
 
+  // Maps a custom affirmation's text back to its recorded voice clip (if
+  // any), so AffirmationCard can play the user's own voice instead of TTS.
+  // Matched by text since the shuffled playback pool above is just strings.
+  const customVoiceByText = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const a of customAffirmations) {
+      if (a.themeId === selectedTheme && a.voiceUri) map[a.text] = a.voiceUri;
+    }
+    return map;
+  }, [customAffirmations, selectedTheme]);
+
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
     safePlayerCall(() => {
@@ -301,6 +312,7 @@ export function SessionPlayer() {
           text={affirmationText}
           visible={affirmationVisible}
           ttsEnabled={!muted}
+          voiceUri={customVoiceByText[affirmationText]}
           onDuckAudio={muted ? undefined : handleDuck}
           onRestoreAudio={muted ? undefined : handleRestore}
         />
