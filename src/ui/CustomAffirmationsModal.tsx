@@ -36,6 +36,7 @@ export function CustomAffirmationsModal({ visible, themeId, onClose }: Props) {
   const removeUserPhoto = useAppStore((s) => s.removeUserPhoto);
   const hiddenLibraryAffirmations = useAppStore((s) => s.hiddenLibraryAffirmations);
   const toggleLibraryAffirmation = useAppStore((s) => s.toggleLibraryAffirmation);
+  const accentColor = useAppStore((s) => s.accentColor);
 
   const [newText, setNewText] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -78,7 +79,7 @@ export function CustomAffirmationsModal({ visible, themeId, onClose }: Props) {
               {theme.emoji} {theme.label} Affirmations
             </Text>
             <Pressable onPress={onClose} hitSlop={8}>
-              <Text style={styles.doneText}>Done</Text>
+              <Text style={[styles.doneText, { color: accentColor }]}>Done</Text>
             </Pressable>
           </View>
 
@@ -96,7 +97,11 @@ export function CustomAffirmationsModal({ visible, themeId, onClose }: Props) {
             />
             <Pressable
               onPress={handleAdd}
-              style={[styles.addBtn, !newText.trim() && styles.addBtnDisabled]}
+              style={[
+                styles.addBtn,
+                { backgroundColor: accentColor },
+                !newText.trim() && styles.addBtnDisabled,
+              ]}
               disabled={!newText.trim()}
             >
               <Text style={styles.addBtnText}>Add</Text>
@@ -114,7 +119,7 @@ export function CustomAffirmationsModal({ visible, themeId, onClose }: Props) {
                   {editingId === aff.id ? (
                     <View style={styles.editRow}>
                       <TextInput
-                        style={styles.editInput}
+                        style={[styles.editInput, { borderColor: accentColor }]}
                         value={editText}
                         onChangeText={setEditText}
                         autoFocus
@@ -122,7 +127,10 @@ export function CustomAffirmationsModal({ visible, themeId, onClose }: Props) {
                         returnKeyType="done"
                         onSubmitEditing={handleSaveEdit}
                       />
-                      <Pressable onPress={handleSaveEdit} style={styles.saveBtn}>
+                      <Pressable
+                        onPress={handleSaveEdit}
+                        style={[styles.saveBtn, { backgroundColor: accentColor }]}
+                      >
                         <Text style={styles.saveBtnText}>Save</Text>
                       </Pressable>
                     </View>
@@ -168,7 +176,13 @@ export function CustomAffirmationsModal({ visible, themeId, onClose }: Props) {
                   onPress={() => toggleLibraryAffirmation(text)}
                   style={styles.libRow}
                 >
-                  <Text style={[styles.libCheck, hidden && styles.libCheckHidden]}>
+                  <Text
+                    style={[
+                      styles.libCheck,
+                      { color: accentColor },
+                      hidden && styles.libCheckHidden,
+                    ]}
+                  >
                     {hidden ? '○' : '●'}
                   </Text>
                   <Text style={[styles.libText, hidden && styles.libTextHidden]}>{text}</Text>
@@ -226,7 +240,6 @@ const styles = StyleSheet.create({
   },
   doneText: {
     fontSize: 16,
-    color: '#b088e0',
     fontWeight: '600',
   },
   addRow: {
@@ -245,7 +258,6 @@ const styles = StyleSheet.create({
     color: '#e0e0e8',
   },
   addBtn: {
-    backgroundColor: '#b088e0',
     borderRadius: 12,
     paddingHorizontal: 18,
     justifyContent: 'center',
@@ -296,7 +308,6 @@ const styles = StyleSheet.create({
   editInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#b088e0',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -304,7 +315,6 @@ const styles = StyleSheet.create({
     color: '#e0e0e8',
   },
   saveBtn: {
-    backgroundColor: '#b088e0',
     borderRadius: 10,
     paddingHorizontal: 14,
     justifyContent: 'center',
@@ -333,7 +343,6 @@ const styles = StyleSheet.create({
   },
   libCheck: {
     fontSize: 14,
-    color: '#b088e0',
     marginTop: 2,
   },
   libCheckHidden: {

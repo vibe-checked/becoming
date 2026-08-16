@@ -9,6 +9,7 @@ import {
   UserPhoto,
 } from '../core/types';
 import { saveState, loadState } from '../core/persistence';
+import { DEFAULT_ACCENT_COLOR } from '../core/accentColors';
 
 type Store = {
   selectedTheme: ThemeId;
@@ -25,7 +26,8 @@ type Store = {
   hiddenLibraryAffirmations: string[];
   dismissedPrompts: string[];
   dailyReminderHour: number | null;
-  favoriteImageByTheme: Partial<Record<ThemeId, string>>;
+  resonatedPhotosByTheme: Partial<Record<ThemeId, string[]>>;
+  accentColor: string;
 
   screen: 'theme_picker' | 'session';
   sessionPhase: 'idle' | 'playing' | 'reflection';
@@ -51,17 +53,19 @@ type Store = {
   addUserPhoto: (themeId: ThemeId, uri: string) => void;
   removeUserPhoto: (id: string) => void;
 
-  setFavoriteImage: (themeId: ThemeId, url: string) => void;
+  toggleResonatedPhoto: (themeId: ThemeId, url: string) => void;
+  resetResonatedPhotos: (themeId: ThemeId) => void;
 
   dismissPrompt: (key: string) => void;
   setDailyReminder: (hour: number | null) => void;
+  setAccentColor: (color: string) => void;
 
   hydrate: () => Promise<void>;
   persist: () => void;
 };
 
 const MAX_HISTORY = 200;
-const MILESTONES = [3, 7, 14, 30, 50, 100, 200, 365];
+export const MILESTONES = [3, 7, 14, 30, 50, 100, 200, 365];
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
@@ -86,7 +90,8 @@ export const useAppStore = create<Store>((set, get) => ({
   hiddenLibraryAffirmations: [],
   dismissedPrompts: [],
   dailyReminderHour: null,
-  favoriteImageByTheme: {},
+  resonatedPhotosByTheme: {},
+  accentColor: DEFAULT_ACCENT_COLOR,
 
   screen: 'theme_picker',
   sessionPhase: 'idle',
@@ -236,15 +241,30 @@ export const useAppStore = create<Store>((set, get) => ({
     get().persist();
   },
 
-  setFavoriteImage: (themeId, url) => {
+  setAccentColor: (color) => {
+    set({ accentColor: color });
+    get().persist();
+  },
+
+  toggleResonatedPhoto: (themeId, url) => {
     const s = get();
-    const next = { ...s.favoriteImageByTheme };
-    if (next[themeId] === url) {
-      delete next[themeId];
-    } else {
-      next[themeId] = url;
-    }
-    set({ favoriteImageByTheme: next });
+    const existing = s.resonatedPhotosByTheme[themeId] ?? [];
+    // Re-resonating an already-saved photo un-resonates it (matches the
+    // star/toggle affordance in SessionControls); otherwise it's added to
+    // the front, so the reel always shows most-recently-resonated first.
+    const next = existing.includes(url)
+      ? existing.filter((u) => u !== url)
+      : [url, ...existing];
+    set({
+      resonatedPhotosByTheme: { ...s.resonatedPhotosByTheme, [themeId]: next },
+    });
+    get().persist();
+  },
+
+  resetResonatedPhotos: (themeId) => {
+    const next = { ...get().resonatedPhotosByTheme };
+    delete next[themeId];
+    set({ resonatedPhotosByTheme: next });
     get().persist();
   },
 
@@ -282,7 +302,8 @@ export const useAppStore = create<Store>((set, get) => ({
         hiddenLibraryAffirmations: saved.hiddenLibraryAffirmations || [],
         dismissedPrompts: saved.dismissedPrompts || [],
         dailyReminderHour: saved.dailyReminderHour ?? null,
-        favoriteImageByTheme: saved.favoriteImageByTheme || {},
+        resonatedPhotosByTheme: saved.resonatedPhotosByTheme || {},
+        accentColor: saved.accentColor || DEFAULT_ACCENT_COLOR,
       });
     }
   },
@@ -304,8 +325,9 @@ export const useAppStore = create<Store>((set, get) => ({
       hiddenLibraryAffirmations: s.hiddenLibraryAffirmations,
       dismissedPrompts: s.dismissedPrompts,
       dailyReminderHour: s.dailyReminderHour,
-      favoriteImageByTheme: s.favoriteImageByTheme,
-      version: 2,
+      resonatedPhotosByTheme: s.resonatedPhotosByTheme,
+      accentColor: s.accentColor,
+      version: 3,
     };
     saveState(data).catch(() => {});
   },

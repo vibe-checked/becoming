@@ -3,6 +3,7 @@ import { Modal, View, Text, Pressable, StyleSheet, Platform } from 'react-native
 import * as Notifications from 'expo-notifications';
 import { useAppStore } from '../store/useAppStore';
 import { scheduleUpcomingReminders } from '../core/reminders';
+import { accentTint } from '../core/accentColors';
 
 const HOURS = [6, 7, 8, 9, 10, 11, 12, 17, 18, 19, 20, 21];
 
@@ -20,6 +21,7 @@ type Props = {
 export function ReminderPicker({ visible, onClose }: Props) {
   const dailyReminderHour = useAppStore((s) => s.dailyReminderHour);
   const setDailyReminder = useAppStore((s) => s.setDailyReminder);
+  const accentColor = useAppStore((s) => s.accentColor);
   const [selected, setSelected] = useState(dailyReminderHour ?? 8);
 
   const handleSave = async () => {
@@ -58,9 +60,17 @@ export function ReminderPicker({ visible, onClose }: Props) {
               <Pressable
                 key={h}
                 onPress={() => setSelected(h)}
-                style={[styles.chip, selected === h && styles.chipActive]}
+                style={[
+                  styles.chip,
+                  selected === h && {
+                    borderColor: accentColor,
+                    backgroundColor: accentTint(accentColor, 0.15),
+                  },
+                ]}
               >
-                <Text style={[styles.chipText, selected === h && styles.chipTextActive]}>
+                <Text
+                  style={[styles.chipText, selected === h && { color: accentColor }]}
+                >
                   {formatHour(h)}
                 </Text>
               </Pressable>
@@ -76,7 +86,10 @@ export function ReminderPicker({ visible, onClose }: Props) {
             <Pressable onPress={onClose} style={styles.cancelBtn}>
               <Text style={styles.cancelText}>Cancel</Text>
             </Pressable>
-            <Pressable onPress={handleSave} style={styles.saveBtn}>
+            <Pressable
+              onPress={handleSave}
+              style={[styles.saveBtn, { backgroundColor: accentColor }]}
+            >
               <Text style={styles.saveText}>Set</Text>
             </Pressable>
           </View>
@@ -126,17 +139,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#333',
   },
-  chipActive: {
-    borderColor: '#b088e0',
-    backgroundColor: 'rgba(176,136,224,0.15)',
-  },
   chipText: {
     fontSize: 13,
     color: '#888',
     fontWeight: '600',
-  },
-  chipTextActive: {
-    color: '#b088e0',
   },
   actions: {
     flexDirection: 'row',
@@ -170,7 +176,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
-    backgroundColor: '#b088e0',
   },
   saveText: {
     fontSize: 14,

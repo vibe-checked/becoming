@@ -65,6 +65,11 @@ export function CrossFadeView({
     if (sources.length <= 1) return;
     const nextIdx = (indexRef.current + 1) % sources.length;
     indexRef.current = nextIdx;
+    // Report the new source the instant it starts fading in, not when the
+    // crossfade finishes — reporting on completion (via activeSlot below)
+    // left the favorite star showing the outgoing photo's state for the
+    // entire crossfade after the new photo had already begun appearing.
+    onActiveSourceChange?.(sources[nextIdx]);
 
     const crossfadeMs = CROSSFADE_MS / speedMultiplier;
     const target = nextTargetRef.current;
@@ -89,7 +94,7 @@ export function CrossFadeView({
         if (finished) runOnJS(setActiveSlot)('A');
       });
     }
-  }, [sources.length, opacityB, speedMultiplier]);
+  }, [sources, opacityB, speedMultiplier, onActiveSourceChange]);
 
   const scheduleNext = useCallback(() => {
     if (!running || sources.length <= 1) return;
@@ -117,11 +122,15 @@ export function CrossFadeView({
     }
   }, [skipSignal, advanceToNext]);
 
+  // Reports the current source whenever the `sources` array itself changes
+  // (initial mount, or photos finishing their async load) — ongoing
+  // transitions are instead reported immediately from advanceToNext above,
+  // right as each new source starts fading in.
   useEffect(() => {
     if (sources.length === 0) return;
-    const activeIndex = activeSlot === 'A' ? slotA : slotB;
-    onActiveSourceChange?.(sources[activeIndex % sources.length]);
-  }, [activeSlot, slotA, slotB, sources, onActiveSourceChange]);
+    onActiveSourceChange?.(sources[indexRef.current % sources.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sources]);
 
   const animStyleB = useAnimatedStyle(() => ({
     opacity: opacityB.value,

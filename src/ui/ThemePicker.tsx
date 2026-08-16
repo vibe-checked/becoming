@@ -15,14 +15,15 @@ import { useAppStore } from '../store/useAppStore';
 import { CustomAffirmationsModal } from './CustomAffirmationsModal';
 
 type Props = {
-  onOpenHighlightReel: () => void;
+  onOpenJourney: () => void;
+  onOpenSettings: () => void;
 };
 
 const DURATIONS: DurationMin[] = [3, 5, 10, 15];
 const CARD_GAP = 12;
 const H_PAD = 20;
 
-export function ThemePicker({ onOpenHighlightReel }: Props) {
+export function ThemePicker({ onOpenJourney, onOpenSettings }: Props) {
   const insets = useSafeAreaInsets();
   const { width: screenW } = useWindowDimensions();
   const selectTheme = useAppStore((s) => s.selectTheme);
@@ -51,9 +52,11 @@ export function ThemePicker({ onOpenHighlightReel }: Props) {
   return (
     <View style={[styles.root, { paddingTop: insets.top + 12 }]}>
       <View style={styles.titleRow}>
-        <View style={styles.titleSpacer} />
+        <Pressable onPress={onOpenSettings} hitSlop={8} style={styles.titleSpacer}>
+          <Text style={styles.reelBtn}>⚙️</Text>
+        </Pressable>
         <Text style={styles.title}>Becoming</Text>
-        <Pressable onPress={onOpenHighlightReel} hitSlop={8} style={styles.titleSpacer}>
+        <Pressable onPress={onOpenJourney} hitSlop={8} style={styles.titleSpacer}>
           <Text style={styles.reelBtn}>💫</Text>
         </Pressable>
       </View>

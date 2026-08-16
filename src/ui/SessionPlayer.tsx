@@ -36,8 +36,8 @@ export function SessionPlayer() {
   const selectedDuration = useAppStore((s) => s.selectedDuration);
   const sessionStartedAt = useAppStore((s) => s.sessionStartedAt);
   const endSession = useAppStore((s) => s.endSession);
-  const favoriteImageByTheme = useAppStore((s) => s.favoriteImageByTheme);
-  const setFavoriteImage = useAppStore((s) => s.setFavoriteImage);
+  const resonatedPhotosByTheme = useAppStore((s) => s.resonatedPhotosByTheme);
+  const toggleResonatedPhoto = useAppStore((s) => s.toggleResonatedPhoto);
   const customAffirmations = useAppStore((s) => s.customAffirmations);
   const hiddenLibraryAffirmations = useAppStore((s) => s.hiddenLibraryAffirmations);
   const userPhotos = useAppStore((s) => s.userPhotos);
@@ -46,14 +46,14 @@ export function SessionPlayer() {
   const durationMs = selectedDuration * 60 * 1000;
 
   const [unsplashUris, setUnsplashUris] = useState<string[]>([]);
-  // Snapshot the resonated favorite once, at session mount, rather than
-  // reading favoriteImageByTheme live in visualSources below. Tapping
-  // Resonance mid-session writes a new favorite into the store immediately,
-  // and since CrossFadeView tracks its current photo by array index (not by
-  // identity), recomputing visualSources' order mid-session shifts every
-  // index to a different photo — the exact "jumps back to a previous
-  // picture" bug reported after 1.4 shipped favorite-first ordering.
-  const sessionFavoriteUriRef = useRef(favoriteImageByTheme[selectedTheme]);
+  // Snapshot the resonated list once, at session mount, rather than reading
+  // resonatedPhotosByTheme live in visualSources below. Tapping Resonance
+  // mid-session writes into the store immediately, and since CrossFadeView
+  // tracks its current photo by array index (not by identity), recomputing
+  // visualSources' order mid-session shifts every index to a different
+  // photo — the exact "jumps back to a previous picture" bug reported after
+  // 1.4 shipped favorite-first ordering.
+  const sessionResonatedRef = useRef(resonatedPhotosByTheme[selectedTheme] ?? []);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,16 +89,22 @@ export function SessionPlayer() {
     if (allPhotos.length === 0) {
       return theme.gradients.map((g) => ({ type: 'gradient' as const, gradient: g }));
     }
-    // Open with the theme's resonated favorite, if any, instead of leaving
-    // it to show up wherever it happens to land in the shuffle — guaranteed
-    // placement is simpler and far more noticeable than nudging its odds.
-    // Uses the mount-time snapshot (see sessionFavoriteUriRef above), not
-    // the live store value, so resonating mid-session doesn't reshuffle
+    // Open with every photo resonated in this theme, most-recently-resonated
+    // first, instead of leaving them to show up wherever they land in the
+    // shuffle — once that list runs out, fall through to the rest of the
+    // pool. Uses the mount-time snapshot (see sessionResonatedRef above),
+    // not the live store value, so resonating mid-session doesn't reshuffle
     // the array the session is already actively cycling through.
-    const favoriteUri = sessionFavoriteUriRef.current;
-    if (favoriteUri) {
-      const rest = allPhotos.filter((p) => p.type !== 'photo' || p.uri !== favoriteUri);
-      return [{ type: 'photo' as const, uri: favoriteUri }, ...rest];
+    const resonated = sessionResonatedRef.current;
+    if (resonated.length > 0) {
+      const resonatedSet = new Set(resonated);
+      const rest = allPhotos.filter(
+        (p) => p.type !== 'photo' || !resonatedSet.has(p.uri),
+      );
+      return [
+        ...resonated.map((uri) => ({ type: 'photo' as const, uri })),
+        ...rest,
+      ];
     }
     return allPhotos;
   }, [theme.gradients, userPhotos, selectedTheme, unsplashUris]);
@@ -270,15 +276,15 @@ export function SessionPlayer() {
 
   const handleResonance = useCallback(() => {
     if (!currentVisualSource || currentVisualSource.type !== 'photo') return;
-    setFavoriteImage(selectedTheme, currentVisualSource.uri);
-  }, [currentVisualSource, selectedTheme, setFavoriteImage]);
+    toggleResonatedPhoto(selectedTheme, currentVisualSource.uri);
+  }, [currentVisualSource, selectedTheme, toggleResonatedPhoto]);
 
   const isFav = useMemo(
     () =>
       !!currentVisualSource &&
       currentVisualSource.type === 'photo' &&
-      favoriteImageByTheme[selectedTheme] === currentVisualSource.uri,
-    [currentVisualSource, favoriteImageByTheme, selectedTheme],
+      (resonatedPhotosByTheme[selectedTheme] ?? []).includes(currentVisualSource.uri),
+    [currentVisualSource, resonatedPhotosByTheme, selectedTheme],
   );
 
   const [tapKey, setTapKey] = useState(0);

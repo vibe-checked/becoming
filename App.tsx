@@ -6,7 +6,8 @@ import { useAppStore } from './src/store/useAppStore';
 import { ThemePicker } from './src/ui/ThemePicker';
 import { SessionPlayer } from './src/ui/SessionPlayer';
 import { ReflectionModal } from './src/ui/ReflectionModal';
-import { HighlightReel } from './src/ui/HighlightReel';
+import { Journey } from './src/ui/Journey';
+import { Settings } from './src/ui/Settings';
 import { StagedPrompt, getNextPrompt } from './src/ui/StagedPrompt';
 import { ReminderPicker } from './src/ui/ReminderPicker';
 import { StreakMilestoneModal } from './src/ui/StreakMilestoneModal';
@@ -18,7 +19,8 @@ import StreakWidget from './widgets/StreakWidget';
 
 export default function App() {
   const [ready, setReady] = useState(false);
-  const [showReel, setShowReel] = useState(false);
+  const [showJourney, setShowJourney] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [showReminder, setShowReminder] = useState(false);
   const [activePrompt, setActivePrompt] = useState<string | null>(null);
   const screen = useAppStore((s) => s.screen);
@@ -28,8 +30,6 @@ export default function App() {
   const dismissPrompt = useAppStore((s) => s.dismissPrompt);
   const hydrate = useAppStore((s) => s.hydrate);
   const persist = useAppStore((s) => s.persist);
-  const selectTheme = useAppStore((s) => s.selectTheme);
-  const startSession = useAppStore((s) => s.startSession);
   const dailyReminderHour = useAppStore((s) => s.dailyReminderHour);
   const justHitMilestone = useAppStore((s) => s.justHitMilestone);
   const currentStreak = useAppStore((s) => s.currentStreak);
@@ -118,18 +118,17 @@ export default function App() {
     <SafeAreaProvider>
       <View style={styles.root}>
         <StatusBar style="light" />
-        {screen === 'theme_picker' && !showReel && (
-          <ThemePicker onOpenHighlightReel={() => setShowReel(true)} />
-        )}
-        {screen === 'theme_picker' && showReel && (
-          <HighlightReel
-            onClose={() => setShowReel(false)}
-            onSelectTheme={(id) => {
-              setShowReel(false);
-              selectTheme(id);
-              startSession();
-            }}
+        {screen === 'theme_picker' && !showJourney && !showSettings && (
+          <ThemePicker
+            onOpenJourney={() => setShowJourney(true)}
+            onOpenSettings={() => setShowSettings(true)}
           />
+        )}
+        {screen === 'theme_picker' && showJourney && (
+          <Journey onClose={() => setShowJourney(false)} />
+        )}
+        {screen === 'theme_picker' && showSettings && (
+          <Settings onClose={() => setShowSettings(false)} />
         )}
         {screen === 'session' && <SessionPlayer />}
         {sessionPhase === 'reflection' && <ReflectionModal />}

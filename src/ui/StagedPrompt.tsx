@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
 } from 'react-native';
+import { useAppStore } from '../store/useAppStore';
 
 type PromptConfig = {
   emoji: string;
@@ -54,6 +55,7 @@ type Props = {
 };
 
 export function StagedPrompt({ promptKey, onDismiss, onAction }: Props) {
+  const accentColor = useAppStore((s) => s.accentColor);
   if (!promptKey || !PROMPTS[promptKey]) return null;
   const prompt = PROMPTS[promptKey];
 
@@ -70,7 +72,7 @@ export function StagedPrompt({ promptKey, onDismiss, onAction }: Props) {
             </Pressable>
             <Pressable
               onPress={() => onAction(promptKey)}
-              style={styles.actionBtn}
+              style={[styles.actionBtn, { backgroundColor: accentColor }]}
             >
               <Text style={styles.actionText}>{prompt.actionLabel}</Text>
             </Pressable>
@@ -154,7 +156,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,
-    backgroundColor: '#b088e0',
   },
   actionText: {
     fontSize: 14,

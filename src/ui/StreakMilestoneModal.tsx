@@ -23,6 +23,7 @@ const MESSAGES: Record<number, string> = {
 export function StreakMilestoneModal() {
   const justHitMilestone = useAppStore((s) => s.justHitMilestone);
   const clearMilestone = useAppStore((s) => s.clearMilestone);
+  const accentColor = useAppStore((s) => s.accentColor);
   const visible = justHitMilestone !== null;
 
   const scale = useSharedValue(0.6);
@@ -50,7 +51,10 @@ export function StreakMilestoneModal() {
           <Text style={styles.fire}>🔥</Text>
           <Text style={styles.title}>{justHitMilestone} Day Streak</Text>
           <Text style={styles.message}>{MESSAGES[justHitMilestone ?? 0]}</Text>
-          <Pressable onPress={clearMilestone} style={styles.button}>
+          <Pressable
+            onPress={clearMilestone}
+            style={[styles.button, { backgroundColor: accentColor }]}
+          >
             <Text style={styles.buttonText}>Keep going</Text>
           </Pressable>
         </Animated.View>
@@ -97,7 +101,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 14,
-    backgroundColor: '#b088e0',
   },
   buttonText: {
     fontSize: 15,
