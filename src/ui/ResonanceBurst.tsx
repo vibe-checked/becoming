@@ -9,10 +9,18 @@ import Animated, {
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
+import { CROSSFADE_MS } from '../core/session';
 
 type Props = {
   onDone: () => void;
 };
+
+const FADE_IN_MS = 120;
+const FADE_OUT_MS = 300;
+// The star's total on-screen lifetime is pinned to CROSSFADE_MS so it fades
+// out exactly as the next photo finishes crossfading in, instead of the two
+// durations drifting apart as independent hardcoded numbers.
+const HOLD_MS = CROSSFADE_MS - FADE_IN_MS - FADE_OUT_MS;
 
 // A single transient star that pops, floats up, and fades — fired once per
 // Resonance tap (Tinder-Super-Like style), independent of the button itself.
@@ -26,12 +34,12 @@ export function ResonanceBurst({ onDone }: Props) {
       withTiming(1.3, { duration: 180, easing: Easing.out(Easing.back(2)) }),
       withTiming(1, { duration: 140, easing: Easing.out(Easing.ease) }),
     );
-    translateY.value = withTiming(-90, { duration: 900, easing: Easing.out(Easing.cubic) });
+    translateY.value = withTiming(-90, { duration: CROSSFADE_MS, easing: Easing.out(Easing.cubic) });
     opacity.value = withSequence(
-      withTiming(1, { duration: 120 }),
+      withTiming(1, { duration: FADE_IN_MS }),
       withDelay(
-        480,
-        withTiming(0, { duration: 300 }, (finished) => {
+        HOLD_MS,
+        withTiming(0, { duration: FADE_OUT_MS }, (finished) => {
           if (finished) runOnJS(onDone)();
         }),
       ),
