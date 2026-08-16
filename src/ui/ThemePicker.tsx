@@ -52,12 +52,12 @@ export function ThemePicker({ onOpenJourney, onOpenSettings }: Props) {
   return (
     <View style={[styles.root, { paddingTop: insets.top + 12 }]}>
       <View style={styles.titleRow}>
-        <Pressable onPress={onOpenSettings} hitSlop={8} style={styles.titleSpacer}>
-          <Text style={styles.reelBtn}>⚙️</Text>
+        <Pressable onPress={onOpenJourney} hitSlop={8} style={styles.titleSpacer}>
+          <Text style={styles.reelBtn}>📈</Text>
         </Pressable>
         <Text style={styles.title}>Becoming</Text>
-        <Pressable onPress={onOpenJourney} hitSlop={8} style={styles.titleSpacer}>
-          <Text style={styles.reelBtn}>💫</Text>
+        <Pressable onPress={onOpenSettings} hitSlop={8} style={styles.titleSpacer}>
+          <Text style={styles.reelBtn}>⚙️</Text>
         </Pressable>
       </View>
       <Text style={styles.subtitle}>

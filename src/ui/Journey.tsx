@@ -160,6 +160,7 @@ function HistoryRow({
         </Text>
         {record.note ? <Text style={styles.rowNote}>“{record.note}”</Text> : null}
       </View>
+      <Text style={styles.rowChevron}>›</Text>
     </Pressable>
   );
 }
@@ -383,6 +384,12 @@ const styles = StyleSheet.create({
     color: '#999',
     fontStyle: 'italic',
     lineHeight: 18,
+  },
+  rowChevron: {
+    fontSize: 22,
+    color: '#555',
+    alignSelf: 'center',
+    marginLeft: 4,
   },
   editBackdrop: {
     flex: 1,

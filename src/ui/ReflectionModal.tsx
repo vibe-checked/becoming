@@ -46,7 +46,8 @@ export function ReflectionModal() {
         style={styles.backdrop}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.card}>
+        <Pressable style={styles.backdropTap} onPress={resumeSession} />
+        <Pressable style={styles.card} onPress={() => {}}>
           <Pressable onPress={resumeSession} hitSlop={12} style={styles.resumeRow}>
             <Text style={styles.resumeText}>‹ Resume session</Text>
           </Pressable>
@@ -80,7 +81,7 @@ export function ReflectionModal() {
             blurOnSubmit
           />
           <Text style={styles.hint}>Tap a mood above to save and continue</Text>
-        </View>
+        </Pressable>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -93,6 +94,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
+  },
+  backdropTap: {
+    ...StyleSheet.absoluteFill,
   },
   card: {
     width: '100%',
