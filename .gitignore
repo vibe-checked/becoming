@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# separate git repo for the shared App Store screenshot tool
+/screenshot-kit
