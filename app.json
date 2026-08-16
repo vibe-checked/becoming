@@ -14,7 +14,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.markutilitylabs.becoming",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Becoming uses the microphone to record your own affirmations.",
         "NSPhotoLibraryUsageDescription": "Becoming lets you add personal photos to play during sessions.",
