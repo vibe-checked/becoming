@@ -88,6 +88,12 @@ export function Journey({ onClose }: Props) {
   );
 }
 
+function formatDuration(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
 function HistoryRow({ record }: { record: SessionRecord }) {
   const theme = THEMES[record.themeId];
   const mood = MOOD[record.reflection];
@@ -96,7 +102,7 @@ function HistoryRow({ record }: { record: SessionRecord }) {
       <Text style={styles.rowMoodIcon}>{mood.icon}</Text>
       <View style={styles.rowBody}>
         <Text style={styles.rowTitle}>
-          {theme.emoji} {theme.label} · {record.durationMin} min
+          {theme.emoji} {theme.label} · {formatDuration(record.durationSec)}
         </Text>
         <Text style={styles.rowMeta}>
           {relativeDate(record.completedAt)} · {mood.label}

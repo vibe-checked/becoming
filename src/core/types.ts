@@ -15,7 +15,9 @@ export type ReflectionEmoji = 'grateful' | 'neutral' | 'restless';
 export type SessionRecord = {
   id: string;
   themeId: ThemeId;
-  durationMin: DurationMin;
+  // Actual elapsed time in the session (may be less than the selected
+  // duration if the user exited early), not the preset the user picked.
+  durationSec: number;
   reflection: ReflectionEmoji;
   note: string;
   completedAt: number;

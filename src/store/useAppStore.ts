@@ -124,13 +124,17 @@ export const useAppStore = create<Store>((set, get) => ({
 
   submitReflection: (emoji, note) => {
     const s = get();
+    const completedAt = Date.now();
+    const durationSec = s.sessionStartedAt
+      ? Math.max(0, Math.round((completedAt - s.sessionStartedAt) / 1000))
+      : s.selectedDuration * 60;
     const record: SessionRecord = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       themeId: s.selectedTheme,
-      durationMin: s.selectedDuration,
+      durationSec,
       reflection: emoji,
       note,
-      completedAt: Date.now(),
+      completedAt,
     };
     const history = [record, ...s.sessionHistory].slice(0, MAX_HISTORY);
 
@@ -287,10 +291,18 @@ export const useAppStore = create<Store>((set, get) => ({
   hydrate: async () => {
     const saved = await loadState();
     if (saved) {
+      // Older persisted records stored a `durationMin` preset instead of the
+      // actual elapsed `durationSec` — fall back to the preset so existing
+      // history entries still render instead of showing NaN:NaN.
+      const sessionHistory = (saved.sessionHistory || []).map((record: any) =>
+        typeof record.durationSec === 'number'
+          ? record
+          : { ...record, durationSec: (record.durationMin ?? 5) * 60 },
+      );
       set({
         selectedTheme: saved.selectedTheme,
         selectedDuration: saved.selectedDuration,
-        sessionHistory: saved.sessionHistory || [],
+        sessionHistory,
         customAffirmations: saved.customAffirmations || [],
         userPhotos: saved.userPhotos || [],
         hasLaunched: saved.hasLaunched,
