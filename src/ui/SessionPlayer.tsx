@@ -35,6 +35,7 @@ export function SessionPlayer() {
   const selectedTheme = useAppStore((s) => s.selectedTheme);
   const selectedDuration = useAppStore((s) => s.selectedDuration);
   const sessionStartedAt = useAppStore((s) => s.sessionStartedAt);
+  const sessionPhase = useAppStore((s) => s.sessionPhase);
   const endSession = useAppStore((s) => s.endSession);
   const resonatedPhotosByTheme = useAppStore((s) => s.resonatedPhotosByTheme);
   const toggleResonatedPhoto = useAppStore((s) => s.toggleResonatedPhoto);
@@ -138,6 +139,11 @@ export function SessionPlayer() {
   // speed mid-session doesn't cause a discontinuous jump in session progress.
   const virtualElapsedRef = useRef(0);
   const lastTickRealRef = useRef<number | null>(null);
+  // Tracks which sessionStartedAt the tick loop has already initialized, so
+  // resuming from the reflection prompt (sessionPhase changes, sessionStartedAt
+  // doesn't) can tell "resume" apart from "brand new session" and only reset
+  // progress in the latter case.
+  const initializedSessionRef = useRef<number | null>(null);
 
   useEffect(() => {
     const custom = customAffirmations
@@ -182,9 +188,16 @@ export function SessionPlayer() {
   }, [player, safePlayerCall]);
 
   useEffect(() => {
-    if (!sessionStartedAt) return;
+    if (!sessionStartedAt || sessionPhase !== 'playing') return;
 
-    virtualElapsedRef.current = 0;
+    // Resuming from the reflection prompt re-enters this effect with the
+    // same sessionStartedAt (only sessionPhase changed) — only a genuinely
+    // new session should reset progress back to zero.
+    const isFreshStart = initializedSessionRef.current !== sessionStartedAt;
+    if (isFreshStart) {
+      virtualElapsedRef.current = 0;
+      initializedSessionRef.current = sessionStartedAt;
+    }
     lastTickRealRef.current = Date.now();
 
     intervalRef.current = setInterval(() => {
@@ -232,7 +245,16 @@ export function SessionPlayer() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [sessionStartedAt, durationMs, endSession, theme.gradients.length, player, safePlayerCall]);
+  }, [sessionStartedAt, sessionPhase, durationMs, endSession, theme.gradients.length, player, safePlayerCall]);
+
+  // Resuming from the reflection prompt needs the ambient track playing
+  // again — pausing it happens explicitly in handleStop and on natural
+  // completion, but there's no explicit "un-pause" path without this.
+  useEffect(() => {
+    if (sessionPhase === 'playing') {
+      safePlayerCall(() => player.play());
+    }
+  }, [sessionPhase, player, safePlayerCall]);
 
   const handleStop = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);

@@ -21,6 +21,7 @@ const EMOJIS: { key: ReflectionEmoji; icon: string; label: string }[] = [
 export function ReflectionModal() {
   const sessionPhase = useAppStore((s) => s.sessionPhase);
   const submitReflection = useAppStore((s) => s.submitReflection);
+  const resumeSession = useAppStore((s) => s.resumeSession);
 
   const [note, setNote] = useState('');
   const isVisible = sessionPhase === 'reflection';
@@ -46,6 +47,10 @@ export function ReflectionModal() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.card}>
+          <Pressable onPress={resumeSession} hitSlop={12} style={styles.resumeRow}>
+            <Text style={styles.resumeText}>‹ Resume session</Text>
+          </Pressable>
+
           <Text style={styles.title}>How do you feel?</Text>
 
           <View style={styles.emojiRow}>
@@ -74,6 +79,7 @@ export function ReflectionModal() {
             returnKeyType="done"
             blurOnSubmit
           />
+          <Text style={styles.hint}>Tap a mood above to save and continue</Text>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -95,6 +101,15 @@ const styles = StyleSheet.create({
     paddingVertical: 36,
     paddingHorizontal: 28,
     alignItems: 'center',
+  },
+  resumeRow: {
+    alignSelf: 'flex-start',
+    marginBottom: 18,
+  },
+  resumeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9a9aaa',
   },
   title: {
     fontSize: 22,
@@ -139,5 +154,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#e0e0e8',
     fontWeight: '300',
+  },
+  hint: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 14,
+    textAlign: 'center',
   },
 });

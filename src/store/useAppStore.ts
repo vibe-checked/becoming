@@ -40,7 +40,9 @@ type Store = {
   selectDuration: (d: DurationMin) => void;
   startSession: () => void;
   endSession: () => void;
+  resumeSession: () => void;
   submitReflection: (emoji: ReflectionEmoji, note: string) => void;
+  updateSessionRecord: (id: string, changes: { reflection?: ReflectionEmoji; note?: string }) => void;
   clearMilestone: () => void;
 
   addCustomAffirmation: (themeId: ThemeId, text: string) => void;
@@ -122,6 +124,10 @@ export const useAppStore = create<Store>((set, get) => ({
     set({ sessionPhase: 'reflection' });
   },
 
+  resumeSession: () => {
+    set({ sessionPhase: 'playing' });
+  },
+
   submitReflection: (emoji, note) => {
     const s = get();
     const completedAt = Date.now();
@@ -188,6 +194,16 @@ export const useAppStore = create<Store>((set, get) => ({
   },
 
   clearMilestone: () => set({ justHitMilestone: null }),
+
+  updateSessionRecord: (id, changes) => {
+    const s = get();
+    set({
+      sessionHistory: s.sessionHistory.map((r) =>
+        r.id === id ? { ...r, ...changes } : r,
+      ),
+    });
+    get().persist();
+  },
 
   addCustomAffirmation: (themeId, text) => {
     const newAff: CustomAffirmation = {
