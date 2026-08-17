@@ -6,11 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0a0a12"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.markutilitylabs.becoming",
@@ -57,9 +52,20 @@
               "displayName": "Streak & Affirmation",
               "description": "Shows your current streak and today's affirmation.",
               "contentMarginsDisabled": true,
-              "supportedFamilies": ["systemSmall", "systemMedium"]
+              "supportedFamilies": [
+                "systemSmall",
+                "systemMedium"
+              ]
             }
           ]
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#0a0a12"
         }
       ]
     ]
