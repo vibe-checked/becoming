@@ -56,7 +56,7 @@ export function Settings({ onClose }: Props) {
 
       <Text style={styles.sectionTitle}>Resonated Photos</Text>
       <Text style={styles.sectionHint}>
-        Reset a theme to clear its saved photos and start resonating from scratch.
+        Reset a category to clear its resonated photos and start fresh.
       </Text>
 
       <ScrollView

@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { ResonanceBurst } from './ResonanceBurst';
+import { useAppStore } from '../store/useAppStore';
 
 const AUTO_HIDE_MS = 8000;
 const FADE_MS = 400;
@@ -35,6 +36,7 @@ export function SessionControls({
   onShare,
   tapSignal,
 }: Props) {
+  const accentColor = useAppStore((s) => s.accentColor);
   const opacity = useSharedValue(1);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -94,10 +96,13 @@ export function SessionControls({
         ))}
         <Pressable
           onPress={handleResonancePress}
-          style={[styles.btn, isFavorited && styles.btnActive]}
+          style={[
+            styles.btn,
+            isFavorited && [styles.btnActive, { borderColor: accentColor, backgroundColor: `${accentColor}2e` }],
+          ]}
         >
           <Text style={styles.btnIcon}>{isFavorited ? '⭐' : '💫'}</Text>
-          <Text style={styles.btnLabel}>Resonance</Text>
+          <Text style={[styles.btnLabel, isFavorited && { color: accentColor }]}>Resonance</Text>
         </Pressable>
       </View>
 
@@ -108,18 +113,28 @@ export function SessionControls({
 
       <Pressable
         onPress={() => handlePress(onSpeedCycle)}
-        style={[styles.btn, speedMultiplier !== 1 && styles.btnActive]}
+        style={[
+          styles.btn,
+          speedMultiplier !== 1 && [styles.btnActive, { borderColor: accentColor, backgroundColor: `${accentColor}2e` }],
+        ]}
       >
         <Text style={styles.btnIcon}>⚡</Text>
-        <Text style={styles.btnLabel}>{speedMultiplier}x</Text>
+        <Text style={[styles.btnLabel, speedMultiplier !== 1 && { color: accentColor }]}>
+          {speedMultiplier}x
+        </Text>
       </Pressable>
 
       <Pressable
         onPress={() => handlePress(onMuteToggle)}
-        style={[styles.btn, muted && styles.btnActive]}
+        style={[
+          styles.btn,
+          muted && [styles.btnActive, { borderColor: accentColor, backgroundColor: `${accentColor}2e` }],
+        ]}
       >
         <Text style={styles.btnIcon}>{muted ? '🔇' : '🔊'}</Text>
-        <Text style={styles.btnLabel}>{muted ? 'Unmute' : 'Mute'}</Text>
+        <Text style={[styles.btnLabel, muted && { color: accentColor }]}>
+          {muted ? 'Unmute' : 'Mute'}
+        </Text>
       </Pressable>
 
       <Pressable onPress={() => handlePress(onShare)} style={styles.btn}>
@@ -153,6 +168,7 @@ const styles = StyleSheet.create({
   },
   btnActive: {
     backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1.5,
   },
   btnIcon: {
     fontSize: 24,

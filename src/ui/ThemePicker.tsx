@@ -33,6 +33,7 @@ export function ThemePicker({ onOpenJourney, onOpenSettings }: Props) {
   const customAffirmations = useAppStore((s) => s.customAffirmations);
   const currentStreak = useAppStore((s) => s.currentStreak);
   const sessionCount = useAppStore((s) => s.sessionCount);
+  const accentColor = useAppStore((s) => s.accentColor);
 
   const [editTheme, setEditTheme] = useState<ThemeId | null>(null);
 
@@ -75,13 +76,16 @@ export function ThemePicker({ onOpenJourney, onOpenSettings }: Props) {
             onPress={() => selectDuration(d)}
             style={[
               styles.durationChip,
-              selectedDuration === d && styles.durationChipActive,
+              selectedDuration === d && [
+                styles.durationChipActive,
+                { borderColor: accentColor, backgroundColor: `${accentColor}2e` },
+              ],
             ]}
           >
             <Text
               style={[
                 styles.durationText,
-                selectedDuration === d && styles.durationTextActive,
+                selectedDuration === d && [styles.durationTextActive, { color: accentColor }],
               ]}
             >
               {d} min
