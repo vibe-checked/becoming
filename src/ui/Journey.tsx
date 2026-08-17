@@ -192,7 +192,8 @@ function EditHistoryModal({
         style={styles.editBackdrop}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.editCard}>
+        <Pressable style={styles.editBackdropTap} onPress={onClose} />
+        <Pressable style={styles.editCard} onPress={() => {}}>
           <Text style={styles.editTitle}>Edit reflection</Text>
 
           <View style={styles.emojiRow}>
@@ -237,7 +238,7 @@ function EditHistoryModal({
               <Text style={styles.editSaveText}>Save</Text>
             </Pressable>
           </View>
-        </View>
+        </Pressable>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -397,6 +398,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
+  },
+  editBackdropTap: {
+    ...StyleSheet.absoluteFill,
   },
   editCard: {
     width: '100%',
