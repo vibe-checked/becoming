@@ -2,7 +2,7 @@
   "expo": {
     "name": "Becoming",
     "slug": "becoming",
-    "version": "1.15",
+    "version": "1.16",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -11,6 +11,7 @@
       "bundleIdentifier": "com.markutilitylabs.becoming",
       "buildNumber": "1",
       "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
         "NSMicrophoneUsageDescription": "Becoming uses the microphone to record your own affirmations.",
         "NSPhotoLibraryUsageDescription": "Becoming lets you add personal photos to play during sessions.",
         "NSSpeechRecognitionUsageDescription": "Becoming uses speech recognition for voice recording."
