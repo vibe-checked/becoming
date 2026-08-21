@@ -2,7 +2,7 @@
   "expo": {
     "name": "Becoming",
     "slug": "becoming",
-    "version": "1.16",
+    "version": "1.17",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -15,7 +15,8 @@
         "NSMicrophoneUsageDescription": "Becoming uses the microphone to record your own affirmations.",
         "NSPhotoLibraryUsageDescription": "Becoming lets you add personal photos to play during sessions.",
         "NSSpeechRecognitionUsageDescription": "Becoming uses speech recognition for voice recording."
-      }
+      },
+      "appleTeamId": "XJ2F96322L"
     },
     "android": {
       "adaptiveIcon": {
@@ -73,7 +74,11 @@
         {
           "image": "./assets/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#0a0a12"
+          "backgroundColor": "#0a0a12",
+          "imageWidth": 250,
+          "dark": {
+            "backgroundColor": "#0a0a12"
+          }
         }
       ]
     ]

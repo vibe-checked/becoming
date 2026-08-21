@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAppStore } from './src/store/useAppStore';
 import { ThemePicker } from './src/ui/ThemePicker';
@@ -16,9 +17,14 @@ import { scheduleUpcomingReminders } from './src/core/reminders';
 import { getDailyAffirmation } from './src/core/affirmations';
 import { THEMES } from './src/core/themes';
 import StreakWidget from './widgets/StreakWidget';
+import { Ignition } from './src/ui/Ignition';
+
+// Hold the native splash so the animated open takes over without a flash.
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
   const [ready, setReady] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
   const [showJourney, setShowJourney] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showReminder, setShowReminder] = useState(false);
@@ -38,6 +44,8 @@ export default function App() {
   useEffect(() => {
     hydrate().then(() => setReady(true));
   }, [hydrate]);
+
+  useEffect(() => { if (ready) SplashScreen.hideAsync().catch(() => {}); }, [ready]);
 
   useEffect(() => {
     // Keep the home screen widget in sync with the current streak and
@@ -143,6 +151,7 @@ export default function App() {
           onClose={() => setShowReminder(false)}
         />
       </View>
+      {ready && !introDone && <Ignition onDone={() => setIntroDone(true)} />}
     </SafeAreaProvider>
   );
 }
