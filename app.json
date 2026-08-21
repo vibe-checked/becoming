@@ -2,7 +2,7 @@
   "expo": {
     "name": "Becoming",
     "slug": "becoming",
-    "version": "1.14",
+    "version": "1.15",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -27,7 +27,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false,
+          "microphonePermission": "Becoming uses the microphone to record your own affirmations."
+        }
+      ],
       [
         "expo-notifications",
         {
